@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Scrollbar (Sesuai request style kamu) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #C7B198; /* Secondary */
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1A534B; /* Primary */
+}
