@@ -313,7 +313,7 @@ export default function PosBoard() {
           <div className="hidden md:flex items-center gap-3">
             {outletInfo?.logo ? (
               <img 
-                src={outletInfo.logo.startsWith('http') ? outletInfo.logo : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").split('/api')[0]}/${outletInfo.logo.replace(/^\//, '')}`} 
+                src={outletInfo.logo.startsWith('http') ? outletInfo.logo : `${(process.env.NEXT_PUBLIC_API_URL || "https://linen-deer-529188.hostingersite.com/api").split('/api')[0]}/${outletInfo.logo.replace(/^\//, '')}`} 
                 alt="Logo Outlet" 
                 className="w-9 h-9 rounded-full object-cover bg-white shadow-sm border-2 border-emerald-400" 
               />

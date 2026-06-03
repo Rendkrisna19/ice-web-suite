@@ -3,7 +3,7 @@ import { LoginPayload, LoginResponse } from "@/types/auth";
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<LoginResponse> => {
-    // Hasil akhir URL: http://localhost:8000/api/v1/auth/login
+    // Hasil akhir URL: https://linen-deer-529188.hostingersite.com/api/v1/auth/login
     const response = await api.post<LoginResponse>("/auth/login", payload);
     return response.data;
   },

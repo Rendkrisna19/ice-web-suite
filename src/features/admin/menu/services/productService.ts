@@ -7,7 +7,7 @@ const BASE_PATH = "/products";
 
 export const productService = {
   getProducts: async (): Promise<MenuItem[]> => {
-    // Hasil Akhir: http://localhost:8000/api/v1/products (BENAR)
+    // Hasil Akhir: https://linen-deer-529188.hostingersite.com/api/v1/products (BENAR)
     const response = await api.get<ProductListResponse>(BASE_PATH);
     
     // Pastikan struktur response Laravel Pagination benar

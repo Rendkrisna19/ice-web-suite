@@ -34,7 +34,7 @@ export default function AddMenuModal({ isOpen, onClose, onSave, initialData }: A
       // Patch: jika ada double storage, ganti jadi single
       return path.replace("/storage/storage/", "/storage/");
     }
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://linen-deer-529188.hostingersite.com";
     const baseUrl = apiUrl.split('/api')[0].replace(/\/$/, "");
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
     return `${baseUrl}${cleanPath}`;

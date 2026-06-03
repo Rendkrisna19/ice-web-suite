@@ -72,7 +72,7 @@ export default function MerchantMenuModal({ isOpen, onClose, outlet }: MerchantM
     if (!path) return null;
     if (path.startsWith("http")) return path;
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://linen-deer-529188.hostingersite.com";
     const baseUrl = apiUrl.split('/api')[0].replace(/\/$/, ""); 
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
