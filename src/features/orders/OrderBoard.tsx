@@ -27,12 +27,17 @@ export default function OrderBoard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [newOrder, setNewOrder] = useState<Order | null>(null);
-  const prevOrderCountRef = useRef<number>(0);
+  const knownOrderIdsRef = useRef<Set<number>>(new Set());
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // --- BACKGROUND KEEP-ALIVE HACK ---
+  const SILENT_AUDIO = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
   const [rejectModal, setRejectModal] = useState<{ isOpen: boolean; orderId: number | null }>({
     isOpen: false,
     orderId: null,
   });
-  
+
   const [validationModal, setValidationModal] = useState<{ isOpen: boolean; order: Order | null }>({
       isOpen: false,
       order: null
@@ -47,35 +52,49 @@ export default function OrderBoard() {
         merchantService.getAvailableDrivers().catch(() => [])
       ]);
 
-      // --- PERBAIKAN TIPE DATA (MENGHILANGKAN ANY) ---
       let safeOrders: Order[] = [];
-      
-      // Type Guard sederhana
       if (Array.isArray(fetchedOrders)) {
           safeOrders = fetchedOrders;
       } else if (typeof fetchedOrders === 'object' && fetchedOrders !== null && 'data' in fetchedOrders) {
           safeOrders = (fetchedOrders as any).data;
-      } else {
-          safeOrders = [];
       }
 
       let safeDrivers: Driver[] = [];
-      // Lakukan hal yang sama untuk drivers jika perlu, atau casting sederhana jika yakin
       if (Array.isArray(fetchedDrivers)) {
           safeDrivers = fetchedDrivers;
       } else if (typeof fetchedDrivers === 'object' && fetchedDrivers !== null && 'data' in fetchedDrivers) {
           safeDrivers = (fetchedDrivers as ApiResponse<Driver[]>).data;
       }
 
-      if (isBackground && safeOrders.length > prevOrderCountRef.current) {
-         const latest = [...safeOrders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-         if (latest && (latest.status === 'pending' || latest.status === 'paid')) {
+      const currentIds = knownOrderIdsRef.current;
+      const newOrders = safeOrders.filter(o => !currentIds.has(o.id));
+
+      if (isBackground && newOrders.length > 0) {
+         // Cek apakah ada order dengan status pending/paid di dalam newOrders
+         const incomingNewOrders = newOrders.filter(o => o.status === 'pending' || o.status === 'paid');
+         
+         if (incomingNewOrders.length > 0) {
+             const latest = incomingNewOrders[0];
              setNewOrder(latest);
+             
+             // Trigger System Notification + Getar
+             if ("Notification" in window && Notification.permission === "granted") {
+               new Notification("Pesanan Baru Masuk!", {
+                 body: `Order #${latest.order_number?.split('-').pop() || latest.id} senilai Rp ${(latest.total_price || latest.total_amount || 0).toLocaleString()}`,
+                 icon: "/icons/icon-192x192.png",
+                 vibrate: [200, 100, 200, 100, 500]
+               } as NotificationOptions & { vibrate?: number[] });
+             } else if (navigator.vibrate) {
+               navigator.vibrate([200, 100, 200, 100, 500]);
+             }
              
              // Play notification sound
              try {
-               const audio = new Audio("/sounds/notification.mp3");
-               audio.play().catch(e => console.log("Audio play failed (maybe blocked by browser):", e));
+               const notifAudio = document.getElementById('cashier-notif-audio') as HTMLAudioElement;
+               if (notifAudio) {
+                   notifAudio.currentTime = 0;
+                   notifAudio.play().catch(e => console.log("Audio play blocked:", e));
+               }
              } catch (e) {
                console.log("Audio initialization failed:", e);
              }
@@ -84,7 +103,7 @@ export default function OrderBoard() {
 
       setOrders(safeOrders);
       setDrivers(safeDrivers);
-      prevOrderCountRef.current = safeOrders.length;
+      knownOrderIdsRef.current = new Set(safeOrders.map(o => o.id));
 
     } catch (error) {
       console.error("Fetch error:", error); // Gunakan error agar tidak unused
@@ -96,10 +115,24 @@ export default function OrderBoard() {
 
   useEffect(() => {
     fetchData(); 
+    
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    const startSilentAudio = () => {
+      silentAudioRef.current?.play().catch(() => {});
+      document.removeEventListener('click', startSilentAudio);
+    };
+    document.addEventListener('click', startSilentAudio);
+
     const intervalId = setInterval(() => {
         fetchData(true);
     }, 15000);
-    return () => clearInterval(intervalId);
+    return () => {
+        clearInterval(intervalId);
+        document.removeEventListener('click', startSilentAudio);
+    };
   }, []);
 
   const handleActionClick = async (orderId: number, action: string, payload?: number) => {
@@ -183,6 +216,18 @@ export default function OrderBoard() {
   return (
     <div className="fixed inset-0 z-50 bg-surface-200 flex flex-col font-sans overflow-hidden">
       
+      {/* BACKGROUND KEEP-ALIVE AUDIO ELEMENT */}
+      <audio 
+        ref={silentAudioRef} 
+        src={SILENT_AUDIO} 
+        loop 
+        playsInline
+        className="hidden" 
+      />
+
+      {/* NOTIFICATION AUDIO ELEMENT */}
+      <audio id="cashier-notif-audio" src="/sounds/notification.mp3" preload="auto" className="hidden" />
+
       <POSSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <POSHeader onMenuClick={() => setIsSidebarOpen(true)} />
 

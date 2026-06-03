@@ -95,11 +95,18 @@ export default function OrderCard({ order, variant, drivers = [], onAction }: Or
             <div className="bg-surface-50 rounded-lg p-2 space-y-2 mb-4 border border-surface-100">
                 {order.items && order.items.length > 0 ? (
                     order.items.map((item: OrderItem, idx: number) => ( // Gunakan OrderItem type
-                        <div key={idx} className="flex justify-between text-xs border-b border-dashed border-surface-200 last:border-0 pb-1 last:pb-0">
-                            <div className="flex gap-2">
-                                <span className="font-bold text-neutral-800">{item.quantity}x</span>
-                                <span className="text-neutral-600 line-clamp-1">{item.product_name_snap}</span>
+                        <div key={idx} className="flex flex-col text-xs border-b border-dashed border-surface-200 last:border-0 pb-2 mb-1 last:mb-0">
+                            <div className="flex justify-between w-full">
+                                <div className="flex gap-2">
+                                    <span className="font-bold text-neutral-800">{item.quantity}x</span>
+                                    <span className="text-neutral-600 line-clamp-1">{item.product_name_snap}</span>
+                                </div>
                             </div>
+                            {item.variant_snap && ((item.variant_snap as any).notes || (item.variant_snap as any).note || (typeof item.variant_snap === 'string' ? item.variant_snap : null)) && (
+                                <div className="mt-1 pl-6 text-[10px] text-neutral-400 italic">
+                                    Catatan: {(item.variant_snap as any).notes || (item.variant_snap as any).note || (typeof item.variant_snap === 'string' ? item.variant_snap : '')}
+                                </div>
+                            )}
                         </div>
                     ))
                 ) : (

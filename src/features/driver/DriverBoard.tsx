@@ -78,13 +78,11 @@ export default function DriverBoard() {
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
   // Menggunakan useRef agar nilainya selalu up-to-date di dalam setInterval
-  const previousJobCountRef = useRef(0);
+  const knownJobIdsRef = useRef<Set<number>>(new Set());
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- BACKGROUND KEEP-ALIVE HACK ---
-  // Memutar audio hening (silent) secara loop agar browser HP tidak mematikan background JS
   const SILENT_AUDIO = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
-
 
   // --- INIT DATA ---
   const initData = useCallback(async () => {
@@ -96,9 +94,11 @@ export default function DriverBoard() {
       
       setProfile(profileData);
       setActiveJobs(jobsData);
-      previousJobCountRef.current = jobsData.length; // Set nilai awal
+      
+      const newIds = new Set(jobsData.map(j => j.id));
+      knownJobIdsRef.current = newIds;
 
-      // Request Notification Permission (agar bunyi/muncul popup meski app di background)
+      // Request Notification Permission
       if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
       }
@@ -122,15 +122,15 @@ export default function DriverBoard() {
         try {
           const jobsData = await driverService.getActiveJobs();
           
-          // Jika jumlah pesanan yang ditarik dari API LEBIH BANYAK dari sebelumnya = Ada pesanan masuk!
-          if (jobsData.length > previousJobCountRef.current) {
-              // Ambil pesanan terbaru (index terakhir dari array)
-              const latestJob = jobsData[jobsData.length - 1]; 
-              
+          // Cari pesanan baru berdasarkan ID
+          const currentIds = knownJobIdsRef.current;
+          const newJobs = jobsData.filter(job => !currentIds.has(job.id));
+          
+          if (newJobs.length > 0) {
+              const latestJob = newJobs[newJobs.length - 1]; 
               setNewestJob(latestJob);
-              setIsIncomingModalOpen(true); // Munculkan modal
+              setIsIncomingModalOpen(true); 
               
-              // Trigger System Notification + Getar
               if ("Notification" in window && Notification.permission === "granted") {
                 new Notification("Tugas Baru Diberikan!", {
                   body: `Kasir menugaskan Order dari ${latestJob.customer_name}.`,
@@ -141,22 +141,24 @@ export default function DriverBoard() {
                 navigator.vibrate([200, 100, 200, 100, 500]);
               }
 
-              // Play notification sound
               try {
-                const audio = new Audio("/sounds/notification.mp3");
-                audio.play().catch(e => console.log("Audio play failed (maybe blocked by browser):", e));
+                const notifAudio = document.getElementById('notif-audio') as HTMLAudioElement;
+                if (notifAudio) {
+                    notifAudio.currentTime = 0;
+                    notifAudio.play().catch(e => console.log("Audio play blocked", e));
+                }
               } catch (e) {
                 console.log("Audio initialization failed:", e);
               }
           }
 
           setActiveJobs(jobsData);
-          previousJobCountRef.current = jobsData.length; // Update referensi
+          knownJobIdsRef.current = new Set(jobsData.map(j => j.id));
 
         } catch (error) {
           console.error("Gagal update data realtime", error);
         }
-      }, 5000); // 5000 ms = Cek setiap 5 detik agar driver cepat menerima pesanan
+      }, 5000); 
     }
 
     return () => {
@@ -218,7 +220,7 @@ export default function DriverBoard() {
         
         const updatedJobs = await driverService.getActiveJobs();
         setActiveJobs(updatedJobs);
-        previousJobCountRef.current = updatedJobs.length;
+        knownJobIdsRef.current = new Set(updatedJobs.map(j => j.id));
       } catch (error) {
         toast.error("Gagal update status", { id: toastId });
       }
@@ -251,7 +253,7 @@ export default function DriverBoard() {
 
       const updatedJobs = await driverService.getActiveJobs();
       setActiveJobs(updatedJobs);
-      previousJobCountRef.current = updatedJobs.length; // Update agar modal tidak terpanggil saat berkurang
+      knownJobIdsRef.current = new Set(updatedJobs.map(j => j.id));
 
       toast.success("Order Selesai! Menunggu validasi.", { id: toastId });
     } catch (error) {
@@ -278,6 +280,9 @@ export default function DriverBoard() {
         playsInline
         className="hidden" 
       />
+
+      {/* NOTIFICATION AUDIO ELEMENT */}
+      <audio id="notif-audio" src="/sounds/notification.mp3" preload="auto" className="hidden" />
 
       <DriverHeader name={profile?.name} profileImage={profile?.profile_image} />
       

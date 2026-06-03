@@ -23,7 +23,7 @@ export default function IncomingOrderModal({ isOpen, orderData, onAccept, onReje
              <div>
                 <h4 className="font-bold text-lg text-neutral-900">Pesanan Baru Masuk!</h4>
                 <p className="text-sm text-neutral-500 mt-1">
-                   Order <span className="font-mono font-bold text-[#15423C]">#{orderData?.id || "NEW"}</span> senilai <span className="font-bold">Rp {orderData?.total?.toLocaleString() || "0"}</span>
+                   Order <span className="font-mono font-bold text-[#15423C]">#{orderData?.id || "NEW"}</span> senilai <span className="font-bold">Rp {(orderData?.total_price || orderData?.total || 0).toLocaleString()}</span>
                 </p>
              </div>
           </div>
