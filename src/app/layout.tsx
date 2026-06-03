@@ -130,14 +130,6 @@ export default function RootLayout({
       </head>
       
       <body className={`${poppins.variable} font-sans bg-surface-300 text-neutral-600 antialiased`}>
-        {/* Register Service Worker for PWA */}
-        <script dangerouslySetInnerHTML={{
-          __html: `if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/service-worker.js');
-            });
-          }`
-        }} />
         {/* 3. SPLASH SCREEN (Muncul diawal) */}
         <SplashScreen />
 
