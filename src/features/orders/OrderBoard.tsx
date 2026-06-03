@@ -80,7 +80,7 @@ export default function OrderBoard() {
              // Trigger System Notification + Getar
              if ("Notification" in window && Notification.permission === "granted") {
                new Notification("Pesanan Baru Masuk!", {
-                 body: `Order #${latest.order_number?.split('-').pop() || latest.id} senilai Rp ${(latest.total_price || latest.total_amount || 0).toLocaleString()}`,
+                 body: `Order #${latest.order_number?.split('-').pop() || latest.id} senilai Rp ${(latest.total_price || 0).toLocaleString()}`,
                  icon: "/icons/icon-192x192.png",
                  vibrate: [200, 100, 200, 100, 500]
                } as NotificationOptions & { vibrate?: number[] });
