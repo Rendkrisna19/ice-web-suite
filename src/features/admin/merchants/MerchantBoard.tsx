@@ -81,6 +81,17 @@ export default function MerchantBoard() {
     formData.set("opening_hour", formatTime(open));
     formData.set("closing_hour", formatTime(close));
 
+    // Cegah upload file kosong (bikin error validasi image di Laravel)
+    const logoFile = formData.get("logo") as File;
+    if (logoFile && logoFile.size === 0) {
+      formData.delete("logo");
+    }
+
+    const bannerFile = formData.get("banner") as File;
+    if (bannerFile && bannerFile.size === 0) {
+      formData.delete("banner");
+    }
+
     // Handle Boolean/Status manually if backend expects boolean
     const status = formData.get("status");
     // Karena kirim via FormData, boolean akan jadi string "true"/"false" atau "1"/"0"

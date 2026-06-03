@@ -45,6 +45,12 @@ export default function MenuFormModal({ isOpen, onClose, onSuccess, initialData 
       const formData = new FormData(e.currentTarget);
       formData.set("category", selectedCategory);
 
+      // Cegah upload file kosong
+      const imageFile = formData.get("image") as File;
+      if (imageFile && imageFile.size === 0) {
+        formData.delete("image");
+      }
+
       let result: MenuItem;
 
       if (initialData) {
