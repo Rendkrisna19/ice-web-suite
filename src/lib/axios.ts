@@ -7,7 +7,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://linen-deer-529188.h
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    "Content-Type": "application/json",
     "Accept": "application/json",
   },
 });
