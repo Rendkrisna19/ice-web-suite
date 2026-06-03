@@ -7,6 +7,7 @@ export interface MenuItem {
   slug?: string;
   description?: string;
   price: number;
+  cost_price?: number | string | null;
   category: ProductCategory; // Kuncinya disini
   image_url: string;
   is_available: boolean;

@@ -11,3 +11,9 @@ export interface MenuItem {
   description?: string;
   is_available: boolean | number;
 }
+
+export interface ProductListResponse {
+  data: {
+    data: any[];
+  };
+}

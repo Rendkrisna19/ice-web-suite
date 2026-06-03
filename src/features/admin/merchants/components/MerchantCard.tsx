@@ -9,6 +9,7 @@ interface MerchantCardProps {
   outlet: Outlet;
   onEdit: (outlet: Outlet) => void;
   onDelete: (id: number) => void;
+  onManageMenu?: (outlet: Outlet) => void;
 }
 
 export default function MerchantCard({ outlet, onEdit, onDelete, onManageMenu }: MerchantCardProps) {

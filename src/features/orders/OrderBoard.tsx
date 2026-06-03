@@ -51,14 +51,10 @@ export default function OrderBoard() {
       let safeOrders: Order[] = [];
       
       // Type Guard sederhana
-      const isOrderArray = (data: unknown): data is Order[] => Array.isArray(data);
-      const hasDataProperty = (data: unknown): data is ApiResponse<Order[]> => 
-        typeof data === 'object' && data !== null && 'data' in data && Array.isArray((data as ApiResponse<Order[]>).data);
-
-      if (isOrderArray(fetchedOrders)) {
+      if (Array.isArray(fetchedOrders)) {
           safeOrders = fetchedOrders;
-      } else if (hasDataProperty(fetchedOrders)) {
-          safeOrders = fetchedOrders.data;
+      } else if (typeof fetchedOrders === 'object' && fetchedOrders !== null && 'data' in fetchedOrders) {
+          safeOrders = (fetchedOrders as any).data;
       } else {
           safeOrders = [];
       }

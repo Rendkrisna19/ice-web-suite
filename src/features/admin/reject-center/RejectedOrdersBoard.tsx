@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { XCircle, Search, Filter, Loader2, Store, User } from "lucide-react";   
-import { Order } from "@/types/merchant"; // Gunakan type Order yang sudah ada
+import { Order } from "@/types/order"; // Gunakan type Order yang sudah ada
 import { rejectedService } from "./services/rejectedService";
 import AdminHeader from "@/features/admin/components/AdminHeader";
 

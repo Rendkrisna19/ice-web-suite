@@ -33,6 +33,7 @@ export interface Order {
   status: 'pending' | 'paid' | 'preparing' | 'ready' | 'on_delivery' | 'delivered' | 'completed' | 'cancelled';
   total_price: number | string;
   created_at: string;
+  updated_at?: string;
   delivery_address: string;
   
   // Relasi

@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Order, Product } from "@/types";
+import { Order } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 

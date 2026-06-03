@@ -19,12 +19,13 @@ export const productService = {
     // Mapping: Mengubah format API agar cocok dengan UI
     return rawData.map((item) => ({
       id: item.id,
+      outlet_id: item.outlet_id || 1, // Default or map if available
       name: item.name,
-      price: parseFloat(item.price), // Convert "35000.00" ke 35000
-      category: item.category,       // "Makanan" / "Minuman"
-      image: item.image_url,
+      price: parseFloat(item.price), 
+      category: item.category,       
+      image_url: item.image_url,
       description: item.description,
-      isReady: true,                 // Default true
+      is_available: item.is_available ?? true,                 
     }));
   },
 };

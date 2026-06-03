@@ -2,7 +2,7 @@
 
 import { TrendingUp, ShoppingBag, Users, AlertCircle } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { DashboardStat } from "./services/dashboardService";
+import { DashboardStat } from "../services/dashboardService";
 
 export default function StatCard({ stat }: { stat: DashboardStat }) {
   const isMoney = stat.type === "money";

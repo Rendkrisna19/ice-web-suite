@@ -82,7 +82,7 @@ export const driverService = {
       const orders = Array.isArray(raw) ? raw : raw ? [raw] : [];
       return orders.map((order: ApiOrder) => ({
         id: order.id,
-        transaction_id: order.transaction_id || order.id.toString(), 
+        transaction_id: order.transaction_id ? Number(order.transaction_id) : order.id, 
         customer_name: order.customer?.name || "Pelanggan",
         customer_phone: order.customer?.phone || "-",
         address: order.delivery_address,

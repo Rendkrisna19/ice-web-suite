@@ -1,6 +1,6 @@
 import { CheckCircle2, AlertTriangle, Info, RotateCcw } from "lucide-react";
 import { cn } from "@/utils/cn";
-// import { ActivityLog } from "./services/dashboardService";
+import { ActivityLog } from "../services/dashboardService";
 
 export default function ActivityList({ logs }: { logs: ActivityLog[] }) {
   return (

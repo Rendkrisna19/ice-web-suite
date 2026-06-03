@@ -31,8 +31,7 @@ export type OrderStatus =
   | 'preparing' 
   | 'ready' 
   | 'on_delivery' 
-  | 'completed' 
-  |   
+  | 'completed';
 
 export interface Order {
   id: number;
@@ -42,6 +41,7 @@ export interface Order {
   total_price: number;
   status: OrderStatus;
   created_at: string;
+  updated_at?: string;
   driver_id?: number | null;
   driver?: Driver | null;
   delivery_address: string;

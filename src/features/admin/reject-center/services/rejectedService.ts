@@ -1,7 +1,7 @@
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 // Pastikan tipe data Order sudah ada (bisa pakai tipe yang sama dengan merchant)
-import { Order } from "@/types/merchant"; 
+import { Order } from "@/types/order"; 
 
 export const rejectedService = {
   getRejectedOrders: async (page = 1) => {

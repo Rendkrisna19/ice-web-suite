@@ -8,6 +8,7 @@ interface ProductFormData {
   category: string; // "makanan" | "minuman"
   description?: string;
   image?: File | null;
+  is_available?: boolean | number;
 }
 
 export const menuService = {
@@ -22,11 +23,12 @@ export const menuService = {
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("price", data.price);
-    if (data.cost_price) formData.append("cost_price", data.cost_price);
+    if (data.cost_price !== undefined) formData.append("cost_price", String(data.cost_price));
     formData.append("category", data.category);
     
     if (data.description) formData.append("description", data.description);
     if (data.image) formData.append("image", data.image);
+    if (data.is_available !== undefined) formData.append("is_available", String(data.is_available));
 
     const response = await api.post("/merchant/products", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -40,7 +42,7 @@ export const menuService = {
     // Backend hanya support POST untuk update, tanpa _method
     formData.append("name", data.name);
     formData.append("price", data.price);
-    if (data.cost_price) formData.append("cost_price", data.cost_price);
+    if (data.cost_price !== undefined) formData.append("cost_price", String(data.cost_price));
     formData.append("category", data.category);
     if (data.is_available !== undefined) formData.append("is_available", String(data.is_available));
     if (data.description) formData.append("description", data.description);
