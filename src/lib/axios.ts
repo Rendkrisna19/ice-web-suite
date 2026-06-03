@@ -2,7 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 // Base URL API
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://linen-deer-529188.hostingersite.com/api/v1";
 
 const api = axios.create({
   baseURL: BASE_URL,

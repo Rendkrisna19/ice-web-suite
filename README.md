@@ -97,7 +97,7 @@ npm install
 2. **Environment Variables:**
 Copy `.env.example` ke `.env.local` dan isi konfigurasi:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_URL=https://linen-deer-529188.hostingersite.com/api/v1
 NEXT_PUBLIC_REVERB_HOST=localhost
 NEXT_PUBLIC_REVERB_PORT=8080
 NEXT_PUBLIC_REVERB_KEY=your_app_key

@@ -6,7 +6,7 @@ export const getEcho = (token?: string) => {
 
   const authEndpoint = process.env.NEXT_PUBLIC_API_URL 
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/v1$/, '') + '/broadcasting/auth'
-    : 'http://localhost:8000/broadcasting/auth';
+    : 'https://linen-deer-529188.hostingersite.com/broadcasting/auth';
 
   const pusherInstance = new Pusher(
     process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'local',
