@@ -79,6 +79,12 @@ export default function DriverBoard() {
 
   // Menggunakan useRef agar nilainya selalu up-to-date di dalam setInterval
   const previousJobCountRef = useRef(0);
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // --- BACKGROUND KEEP-ALIVE HACK ---
+  // Memutar audio hening (silent) secara loop agar browser HP tidak mematikan background JS
+  const SILENT_AUDIO = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
 
   // --- INIT DATA ---
   const initData = useCallback(async () => {
@@ -91,6 +97,11 @@ export default function DriverBoard() {
       setProfile(profileData);
       setActiveJobs(jobsData);
       previousJobCountRef.current = jobsData.length; // Set nilai awal
+
+      // Request Notification Permission (agar bunyi/muncul popup meski app di background)
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
     } catch (error) {
       console.error("Init Error:", error);
     } finally {
@@ -119,6 +130,17 @@ export default function DriverBoard() {
               setNewestJob(latestJob);
               setIsIncomingModalOpen(true); // Munculkan modal
               
+              // Trigger System Notification + Getar
+              if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Tugas Baru Diberikan!", {
+                  body: `Kasir menugaskan Order dari ${latestJob.customer_name}.`,
+                  icon: "/icons/icon-192x192.png",
+                  vibrate: [200, 100, 200, 100, 500]
+                });
+              } else if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 500]);
+              }
+
               // Play notification sound
               try {
                 const audio = new Audio("/sounds/notification.mp3");
@@ -159,11 +181,20 @@ export default function DriverBoard() {
 
         await driverService.clockOut();
         setProfile({ ...profile, is_online: false });
+        silentAudioRef.current?.pause();
         toast.success("Mode Istirahat (Offline)", { id: toastId, icon: '💤' });
 
       } else {
         await driverService.clockIn();
         setProfile({ ...profile, is_online: true });
+        
+        // Memulai background keep-alive saat online (butuh interaksi user, makanya pas klik tombol)
+        try {
+          silentAudioRef.current?.play();
+        } catch (e) {
+          console.log("Gagal memulai silent audio:", e);
+        }
+
         toast.success("Mode Kerja (Online)", { id: toastId });
         initData(); 
       }
@@ -239,6 +270,15 @@ export default function DriverBoard() {
   return (
     <div className="font-sans min-h-screen bg-surface-300 pb-32 pt-32 transition-colors duration-500">
       
+      {/* BACKGROUND KEEP-ALIVE AUDIO ELEMENT */}
+      <audio 
+        ref={silentAudioRef} 
+        src={SILENT_AUDIO} 
+        loop 
+        playsInline
+        className="hidden" 
+      />
+
       <DriverHeader name={profile?.name} profileImage={profile?.profile_image} />
       
       {activeTab === "tasks" ? (
