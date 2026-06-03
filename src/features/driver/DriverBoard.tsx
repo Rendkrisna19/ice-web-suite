@@ -136,7 +136,7 @@ export default function DriverBoard() {
                   body: `Kasir menugaskan Order dari ${latestJob.customer_name}.`,
                   icon: "/icons/icon-192x192.png",
                   vibrate: [200, 100, 200, 100, 500]
-                });
+                } as NotificationOptions & { vibrate?: number[] });
               } else if (navigator.vibrate) {
                 navigator.vibrate([200, 100, 200, 100, 500]);
               }
