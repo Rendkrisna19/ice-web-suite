@@ -22,10 +22,21 @@ import { cn } from "@/utils/cn";
 import { authService } from "@/features/auth/services/authService";
 import { confirmAlert } from "@/utils/alert";
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (val: boolean) => void;
+  isMobileOpen: boolean;
+  setIsMobileOpen: (val: boolean) => void;
+}
+
+export default function AdminSidebar({ 
+  isCollapsed, 
+  setIsCollapsed, 
+  isMobileOpen, 
+  setIsMobileOpen 
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // --- MENU ITEMS (Sesuai Folder Screenshot) ---
@@ -95,7 +106,8 @@ export default function AdminSidebar() {
     <aside 
       className={cn(
         "bg-[#15423C] text-white h-screen fixed left-0 top-0 z-50 flex flex-col transition-all duration-300 shadow-xl",
-        isCollapsed ? "w-20" : "w-64"
+        isCollapsed ? "w-20" : "w-64",
+        isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}
     >
       {/* --- LOGO AREA --- */}
@@ -108,10 +120,10 @@ export default function AdminSidebar() {
           <h1 className="text-xl font-bold tracking-wider">ZAD<span className="text-primary-300 font-light">ADMIN</span></h1>
         )}
         
-        {/* Toggle Button */}
+        {/* Toggle Button (Desktop Only) */}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white text-[#15423C] p-1 rounded-full shadow-md border border-neutral-200 hover:bg-neutral-100 transition-colors"
+          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 bg-white text-[#15423C] p-1 rounded-full shadow-md border border-neutral-200 hover:bg-neutral-100 transition-colors"
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -128,6 +140,7 @@ export default function AdminSidebar() {
             <Link 
               key={item.href} 
               href={item.href}
+              onClick={() => setIsMobileOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
                 isActive 

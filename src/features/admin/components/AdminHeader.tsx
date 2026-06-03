@@ -44,8 +44,15 @@ export default function AdminHeader({ title, onRefresh }: AdminHeaderProps) {
     <header className="h-20 bg-white border-b border-surface-200 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm/50">
       
       {/* Page Title */}
-      <div className="flex items-center gap-4">
-        <h2 className="text-xl font-bold text-neutral-800">{title}</h2>
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Hamburger Menu (Mobile Only) */}
+        <button 
+          onClick={() => window.dispatchEvent(new Event('toggleAdminSidebar'))}
+          className="md:hidden p-2 -ml-2 text-neutral-600 hover:bg-surface-100 rounded-lg transition-colors"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <h2 className="text-lg sm:text-xl font-bold text-neutral-800 line-clamp-1">{title}</h2>
         
         {/* Opsional: Jika kamu ingin menambahkan icon refresh di header (memanfaatkan props onRefresh) */}
         {onRefresh && (

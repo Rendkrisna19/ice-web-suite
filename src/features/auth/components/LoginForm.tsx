@@ -81,7 +81,7 @@ export default function LoginForm() {
     <div className="w-full max-w-lg animate-in fade-in zoom-in duration-500 p-4">
       <div className="bg-[#15423C] rounded-[2.5rem] shadow-2xl shadow-[#15423C]/20 border border-[#15423C]/10 overflow-hidden relative">
         {/* Header Section (Sekarang Putih) */}
-        <div className="bg-white p-10 relative overflow-hidden text-center flex flex-col items-center justify-center rounded-t-[2.5rem]">
+        <div className="bg-white p-6 sm:p-10 relative overflow-hidden text-center flex flex-col items-center justify-center rounded-t-[2.5rem]">
           <div className="relative z-10 flex flex-col items-center w-full">
             {/* Logo langsung di atas background putih */}
             <Image
@@ -89,15 +89,15 @@ export default function LoginForm() {
               alt="Zad Apps Logo"
               width={300}
               height={100}
-              className="w-56 sm:w-64 h-auto object-contain mb-4"
+              className="w-48 sm:w-64 h-auto object-contain mb-2 sm:mb-4"
               priority
             />
           </div>
         </div>
 
         {/* Form Section (Sekarang Hijau Gelap) */}
-        <div className="p-10 pt-8 bg-[#15423C]">
-          <form onSubmit={handleLogin} className="space-y-6">
+        <div className="p-6 sm:p-10 pt-6 sm:pt-8 bg-[#15423C]">
+          <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
             <div>
               <label className="block text-xs font-bold text-white/70 uppercase tracking-widest mb-2 ml-1">
                 Email Address
