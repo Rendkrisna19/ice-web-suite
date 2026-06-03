@@ -34,16 +34,11 @@ interface OrderInfo {
   driver_vehicle_type: string;
 }
 
-export default function DriverChatPage({ params }: { params: { transactionId: string } }) {
-  let transactionId = "";
-  // @ts-ignore
-  if (typeof params?.then === "function") {
-    // @ts-ignore
-    const resolved = require('react').use(params);
-    transactionId = resolved.transactionId;
-  } else {
-    transactionId = params?.transactionId;
-  }
+import { use } from "react";
+
+export default function DriverChatPage({ params }: { params: Promise<{ transactionId: string }> }) {
+  const resolvedParams = use(params);
+  let transactionId = resolvedParams.transactionId;
   
   if (!transactionId || transactionId === "undefined") {
     if (typeof window !== "undefined") {
