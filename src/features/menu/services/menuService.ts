@@ -28,7 +28,7 @@ export const menuService = {
     
     if (data.description) formData.append("description", data.description);
     if (data.image) formData.append("image", data.image);
-    if (data.is_available !== undefined) formData.append("is_available", String(data.is_available));
+    if (data.is_available !== undefined) formData.append("is_available", data.is_available ? "1" : "0");
 
     const response = await api.post("/merchant/products", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -43,8 +43,8 @@ export const menuService = {
     formData.append("name", data.name);
     formData.append("price", data.price);
     if (data.cost_price !== undefined) formData.append("cost_price", String(data.cost_price));
-    formData.append("category", data.category);
-    if (data.is_available !== undefined) formData.append("is_available", String(data.is_available));
+    if (data.category) formData.append("category", data.category);
+    if (data.is_available !== undefined) formData.append("is_available", data.is_available ? "1" : "0");
     if (data.description) formData.append("description", data.description);
     if (data.image) formData.append("image", data.image); // Hanya dikirim jika user ganti foto
 
