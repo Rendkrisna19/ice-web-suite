@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, ShieldAlert, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { authService } from "@/features/auth/services/authService";
@@ -210,19 +209,6 @@ export default function LoginForm() {
                 )}
               </button>
             </form>
-
-            {/* Register Link */}
-            <div className="mt-6 text-center">
-              <p className="text-white/60 text-sm">
-                Belum punya akun?{" "}
-                <Link
-                  href="/register"
-                  className="text-white font-bold hover:underline transition-all"
-                >
-                  Daftar Sekarang
-                </Link>
-              </p>
-            </div>
           </div>
 
           <div className="bg-[#123833] py-5 text-center border-t border-[#1A534B]">

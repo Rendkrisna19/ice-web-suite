@@ -19,24 +19,4 @@ export const authService = {
     const response = await api.get("/auth/user");
     return response.data;
   },
-
-  requestRegisterOtp: async (email: string): Promise<{ email: string; expires_at: string }> => {
-    const response = await api.post("/auth/register/request-otp", { email });
-    return response.data.data;
-  },
-
-  register: async (payload: {
-    name: string;
-    email: string;
-    password: string;
-    password_confirmation: string;
-    otp: string;
-    phone?: string;
-  }): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>("/auth/register/verify-otp", {
-      ...payload,
-      role: "customer",
-    });
-    return response.data;
-  },
 };
