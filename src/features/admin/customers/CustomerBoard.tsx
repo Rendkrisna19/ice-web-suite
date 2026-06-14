@@ -25,13 +25,12 @@ export default function CustomerBoard() {
     try {
       setIsLoading(true);
       const data = await customerService.getCustomers();
-      // Mapping data backend ke frontend structure jika perlu
-      const mappedData = data.map(c => ({
+      const mappedData: Customer[] = data.map(c => ({
         ...c,
-        status: "active" as CustomerStatus, // Default active karena blm ada kolom status di DB
+        status: (c.status || "active") as CustomerStatus,
         phone: c.phone || "-",
-        total_spent: 0, // Placeholder
-        avatar: c.avatar || `https://ui-avatars.com/api/?name=${c.name}&background=random`
+        total_spent: 0,
+        avatar: c.avatar || c.profile_image || `https://ui-avatars.com/api/?name=${c.name}&background=random`
       }));
       setCustomers(mappedData);
     } catch (error) {
@@ -59,19 +58,36 @@ export default function CustomerBoard() {
   });
 
   // --- HANDLERS ---
-  const handleBlockToggle = (id: number, currentStatus: string) => {
-    // Karena backend belum ada endpoint block, kita ubah state lokal saja dulu (Mock)
-    const newStatus = currentStatus === "active" ? "blocked" : "active";
-    
-    setCustomers(prev => prev.map(c => 
-        c.id === id ? { ...c, status: newStatus as CustomerStatus } : c
-    ));
+  const handleBlockToggle = async (id: number, currentStatus: string) => {
+    const isBlocking = currentStatus === "active";
+    const actionText = isBlocking ? "memblokir" : "mengaktifkan kembali";
 
-    if (newStatus === "blocked") {
-        toast.error("Pelanggan diblokir (Simulasi).", { icon: '🚫' });
-    } else {
-        toast.success("Pelanggan diaktifkan.", { icon: '✅' });
-    }
+    confirmAlert(
+      `Apakah Anda yakin ingin ${actionText} pelanggan ini?`,
+      async () => {
+        const toastId = toast.loading(isBlocking ? "Memblokir pelanggan..." : "Mengaktifkan pelanggan...");
+        try {
+          const updatedCustomer = await customerService.toggleBlock(id);
+          
+          setCustomers(prev => prev.map(c =>
+            c.id === id ? { ...c, status: updatedCustomer.status as CustomerStatus } : c
+          ));
+
+          if (updatedCustomer.status === "blocked") {
+            toast.success("Pelanggan berhasil diblokir.", { id: toastId, icon: '🚫' });
+          } else {
+            toast.success("Pelanggan berhasil diaktifkan kembali.", { id: toastId, icon: '✅' });
+          }
+        } catch (error) {
+          toast.error("Gagal mengubah status pelanggan.", { id: toastId });
+        }
+      },
+      {
+        title: isBlocking ? "Blokir Pelanggan" : "Aktifkan Pelanggan",
+        type: isBlocking ? "danger" : "info",
+        confirmText: isBlocking ? "Ya, Blokir" : "Ya, Aktifkan",
+      }
+    );
   };
 
   const handleDelete = async (id: number) => {

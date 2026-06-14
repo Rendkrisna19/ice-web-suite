@@ -12,6 +12,16 @@ export const customerService = {
     }
   },
 
+  toggleBlock: async (id: number): Promise<Customer> => {
+    try {
+      const response = await api.post(`/admin/customers/${id}/toggle-block`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Gagal toggle block customer:", error);
+      throw error;
+    }
+  },
+
   deleteCustomer: async (id: number): Promise<void> => {
     try {
       await api.delete(`/admin/customers/${id}`);
@@ -20,7 +30,4 @@ export const customerService = {
       throw error;
     }
   },
-
-  // Note: Fitur Block Customer belum ada di backend ManagementController kita tadi.
-  // Jadi sementara kita handle di frontend saja atau tambah endpoint block nanti.
 };

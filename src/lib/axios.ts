@@ -71,8 +71,9 @@ api.interceptors.response.use(
       }
     } 
     // 2. Handle Error Validasi (422) atau Server (500)
-    else if (status !== 404) { 
+    else if (status !== 404 && status !== 403) { 
        // Kita skip 404 biar bisa dihandle manual di service (misal: cek active job)
+       // Kita skip 403 biar bisa dihandle manual (misal: akun diblokir)
        toast.error(message);
     }
 
