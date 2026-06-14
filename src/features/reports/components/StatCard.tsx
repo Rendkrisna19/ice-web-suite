@@ -22,7 +22,7 @@ export default function StatCard({ title, value, icon, bgClass, titleClass, valu
         <p className={cn("text-white/80 text-xs font-bold uppercase tracking-wider mb-2", titleClass)}>
           {title}
         </p>
-        <h3 className={cn("text-3xl font-extrabold tracking-tight drop-shadow-sm truncate", valueClass)}>
+        <h3 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm break-words leading-tight", valueClass)}>
           {value}
         </h3>
       </div>

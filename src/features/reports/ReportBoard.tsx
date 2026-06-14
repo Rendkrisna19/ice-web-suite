@@ -13,6 +13,7 @@ import POSSidebar from "../orders/components/POSSidebar";
 import POSHeader from "../orders/components/POSHeader"; 
 import StatCard from "./components/StatCard";
 import TransactionTable from "./components/TransactionTable";
+import TransactionModal from "./components/TransactionModal";
 
 type SourceFilter = "all" | "pos" | "online";
 
@@ -23,6 +24,7 @@ export default function ReportBoard() {
   
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -151,7 +153,7 @@ export default function ReportBoard() {
                 </div>
 
                 <div className="p-0 overflow-x-auto">
-                  <TransactionTable transactions={transactions} />
+                  <TransactionTable transactions={transactions} onViewAll={() => setIsModalOpen(true)} />
                 </div>
               </div>
             </>
@@ -159,6 +161,12 @@ export default function ReportBoard() {
 
         </div>
       </main>
+
+      <TransactionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        transactions={transactions}
+      />
     </div>
   );
 }

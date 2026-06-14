@@ -5,9 +5,10 @@ import { TransactionReport } from "../services/reportService";
 
 interface TransactionTableProps {
   transactions: TransactionReport[];
+  onViewAll?: () => void;
 }
 
-export default function TransactionTable({ transactions }: TransactionTableProps) {
+export default function TransactionTable({ transactions, onViewAll }: TransactionTableProps) {
   // Fungsi Format Rupiah yang Bersih (Tanpa Koma Nol)
   const formatRupiah = (amount: number | string) => {
     const cleanNumber = Math.floor(Number(amount));
@@ -28,7 +29,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
           <h3 className="font-bold text-lg text-neutral-800">Riwayat Transaksi</h3>
           <p className="text-xs text-neutral-400">Transaksi hari ini</p>
         </div>
-        <button className="flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg transition-colors group">
+        <button onClick={onViewAll} className="flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg transition-colors group">
           Lihat Semua <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform"/>
         </button>
       </div>

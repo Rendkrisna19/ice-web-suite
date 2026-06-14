@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 import { Order, Driver } from "@/types";
 import { merchantService } from "./services/merchantService";
+import { useSound } from "@/context/SoundContext";
 
 // Components
 import POSHeader from "./components/POSHeader";
@@ -21,6 +22,7 @@ interface ApiResponse<T> {
 }
 
 export default function OrderBoard() {
+  const { playOnce } = useSound();
   const [orders, setOrders] = useState<Order[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,15 +90,11 @@ export default function OrderBoard() {
                navigator.vibrate([200, 100, 200, 100, 500]);
              }
              
-             // Play notification sound
+             // Play notification sound via SoundContext (supports custom sound + Web Audio API)
              try {
-               const notifAudio = document.getElementById('cashier-notif-audio') as HTMLAudioElement;
-               if (notifAudio) {
-                   notifAudio.currentTime = 0;
-                   notifAudio.play().catch(e => console.log("Audio play blocked:", e));
-               }
+               playOnce();
              } catch (e) {
-               console.log("Audio initialization failed:", e);
+               console.log("Audio play failed:", e);
              }
          }
       }
@@ -120,11 +118,26 @@ export default function OrderBoard() {
       Notification.requestPermission();
     }
 
+    // Register service worker for background notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    }
+
     const startSilentAudio = () => {
       silentAudioRef.current?.play().catch(() => {});
       document.removeEventListener('click', startSilentAudio);
+      document.removeEventListener('touchstart', startSilentAudio);
     };
     document.addEventListener('click', startSilentAudio);
+    document.addEventListener('touchstart', startSilentAudio);
+
+    // When tab becomes visible again, immediately fetch to catch up on missed orders
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchData(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     const intervalId = setInterval(() => {
         fetchData(true);
@@ -132,6 +145,8 @@ export default function OrderBoard() {
     return () => {
         clearInterval(intervalId);
         document.removeEventListener('click', startSilentAudio);
+        document.removeEventListener('touchstart', startSilentAudio);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -224,9 +239,6 @@ export default function OrderBoard() {
         playsInline
         className="hidden" 
       />
-
-      {/* NOTIFICATION AUDIO ELEMENT */}
-      <audio id="cashier-notif-audio" src="/sounds/notification.mp3" preload="auto" className="hidden" />
 
       <POSSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <POSHeader onMenuClick={() => setIsSidebarOpen(true)} />
