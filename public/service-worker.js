@@ -16,16 +16,19 @@ self.addEventListener('push', event => {
     body: data.body || 'Notifikasi baru',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
-    vibrate: [200, 100, 200, 100, 500],
+    // Strong vibration pattern for driver (on motorcycle/phone)
+    vibrate: [500, 200, 500, 200, 1000, 500, 500, 200, 1000],
     data: data,
     actions: [
       { action: 'open', title: 'Buka' },
       { action: 'dismiss', title: 'Tutup' }
     ],
-    // This makes the notification persist even when device is locked
+    // Persist notification even when device is locked
     requireInteraction: true,
-    // Silent: false means it will use the system notification sound
+    // Not silent - use system notification sound
     silent: false,
+    // Tag to prevent duplicate notifications
+    tag: data.tag || 'zadapps-notification',
   };
 
   event.waitUntil(

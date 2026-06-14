@@ -6,6 +6,7 @@ import { Bike, Coffee, Loader2, BellRing } from "lucide-react";
 import { DriverJob, DriverProfile } from "@/types/jobs";
 import { driverService } from "./services/driverService";
 import { confirmAlert } from "@/utils/alert";
+import { useSound } from "@/context/SoundContext";
 
 // Components
 import DriverHeader from "./components/DriverHeader";
@@ -19,7 +20,7 @@ import AccountInfo from "./components/AccountInfo";
 import ProfileMenu from "./components/ProfileMenu";
 
 // =========================================================================
-// KOMPONEN MODAL NOTIFIKASI DRIVER (Digabung di sini agar mudah)
+// KOMPONEN MODAL NOTIFIKASI DRIVER
 // =========================================================================
 interface IncomingJobModalProps {
   isOpen: boolean;
@@ -77,12 +78,62 @@ export default function DriverBoard() {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
-  // Menggunakan useRef agar nilainya selalu up-to-date di dalam setInterval
+  // Sound context for reliable audio playback
+  const { playOnce } = useSound();
+
+  // Refs for up-to-date values in intervals
   const knownJobIdsRef = useRef<Set<number>>(new Set());
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const isOnlineRef = useRef(false);
 
-  // --- BACKGROUND KEEP-ALIVE HACK ---
+  // Silent audio keep-alive to prevent browser from suspending tab
   const SILENT_AUDIO = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
+  // --- WAKE LOCK: Keep screen on when driver is online ---
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ("wakeLock" in navigator && !wakeLockRef.current) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        wakeLockRef.current.addEventListener("release", () => {
+          wakeLockRef.current = null;
+        });
+      }
+    } catch {
+      // Wake Lock not available
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(async () => {
+    if (wakeLockRef.current) {
+      try {
+        await wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      } catch { /* ignore */ }
+    }
+  }, []);
+
+  // --- VIBRATE: Strong pattern for driver on motorcycle ---
+  const triggerVibration = useCallback(() => {
+    if ("vibrate" in navigator) {
+      // Strong, long vibration pattern: buzz-pause-buzz-pause-long buzz
+      // Pattern: vibrate 500ms, pause 200ms, vibrate 500ms, pause 200ms, vibrate 1000ms
+      navigator.vibrate([500, 200, 500, 200, 1000]);
+      
+      // Repeat vibration 3 times for emphasis (driver might not feel first one)
+      setTimeout(() => {
+        if ("vibrate" in navigator) {
+          navigator.vibrate([500, 200, 500, 200, 1000]);
+        }
+      }, 3000);
+      
+      setTimeout(() => {
+        if ("vibrate" in navigator) {
+          navigator.vibrate([500, 200, 500, 200, 1000]);
+        }
+      }, 6000);
+    }
+  }, []);
 
   // --- INIT DATA ---
   const initData = useCallback(async () => {
@@ -102,6 +153,15 @@ export default function DriverBoard() {
       if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
       }
+
+      // Register service worker for background notifications
+      if ("serviceWorker" in navigator) {
+        try {
+          await navigator.serviceWorker.register("/service-worker.js");
+        } catch {
+          // Service worker registration failed, not critical
+        }
+      }
     } catch (error) {
       console.error("Init Error:", error);
     } finally {
@@ -113,16 +173,58 @@ export default function DriverBoard() {
     initData();
   }, [initData]);
 
+  // --- Re-acquire wake lock when page becomes visible ---
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (isOnlineRef.current) {
+          requestWakeLock();
+        }
+        // Immediately fetch latest jobs when tab becomes visible
+        if (isOnlineRef.current) {
+          driverService.getActiveJobs().then((jobsData) => {
+            const currentIds = knownJobIdsRef.current;
+            const newJobs = jobsData.filter(job => !currentIds.has(job.id));
+            
+            if (newJobs.length > 0) {
+              const latestJob = newJobs[newJobs.length - 1];
+              setNewestJob(latestJob);
+              setIsIncomingModalOpen(true);
+              triggerVibration();
+              playOnce();
+            }
+
+            setActiveJobs(jobsData);
+            knownJobIdsRef.current = new Set(jobsData.map(j => j.id));
+          }).catch(() => { /* ignore */ });
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [requestWakeLock, triggerVibration, playOnce]);
+
   // --- REALTIME POLLING ---
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     
     if (profile?.is_online) {
+      isOnlineRef.current = true;
+      requestWakeLock();
+      
+      // Start silent audio keep-alive
+      try {
+        silentAudioRef.current?.play().catch(() => {});
+      } catch { /* ignore */ }
+
       intervalId = setInterval(async () => {
         try {
           const jobsData = await driverService.getActiveJobs();
           
-          // Cari pesanan baru berdasarkan ID
+          // Find new jobs by ID comparison
           const currentIds = knownJobIdsRef.current;
           const newJobs = jobsData.filter(job => !currentIds.has(job.id));
           
@@ -131,24 +233,26 @@ export default function DriverBoard() {
               setNewestJob(latestJob);
               setIsIncomingModalOpen(true); 
               
-              if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("Tugas Baru Diberikan!", {
-                  body: `Kasir menugaskan Order dari ${latestJob.customer_name}.`,
-                  icon: "/icons/icon-192x192.png",
-                  vibrate: [200, 100, 200, 100, 500]
-                } as NotificationOptions & { vibrate?: number[] });
-              } else if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 500]);
-              }
+              // 1. ALWAYS VIBRATE (most important for driver on phone/motorcycle)
+              triggerVibration();
+              
+              // 2. Play sound notification (using SoundContext - reliable in background)
+              playOnce();
 
-              try {
-                const notifAudio = document.getElementById('notif-audio') as HTMLAudioElement;
-                if (notifAudio) {
-                    notifAudio.currentTime = 0;
-                    notifAudio.play().catch(e => console.log("Audio play blocked", e));
+              // 3. Browser notification (works on supported browsers)
+              if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                  new Notification("Tugas Baru Diberikan!", {
+                    body: `Order dari ${latestJob.customer_name} - ${latestJob.address}`,
+                    icon: "/icons/icon-192x192.png",
+                    badge: "/icons/icon-192x192.png",
+                    vibrate: [500, 200, 500, 200, 1000],
+                    tag: `driver-job-${latestJob.id}`,
+                    requireInteraction: true,
+                  } as NotificationOptions);
+                } catch {
+                  // Notification API failed, vibration and sound already triggered
                 }
-              } catch (e) {
-                console.log("Audio initialization failed:", e);
               }
           }
 
@@ -156,15 +260,19 @@ export default function DriverBoard() {
           knownJobIdsRef.current = new Set(jobsData.map(j => j.id));
 
         } catch (error) {
-          console.error("Gagal update data realtime", error);
+          console.error("Polling error:", error);
         }
-      }, 5000); 
+      }, 4000); // Poll every 4 seconds for faster response
+    } else {
+      isOnlineRef.current = false;
+      releaseWakeLock();
+      silentAudioRef.current?.pause();
     }
 
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [profile?.is_online]);
+  }, [profile?.is_online, requestWakeLock, releaseWakeLock, triggerVibration, playOnce]);
 
   // --- HANDLERS ---
   const toggleShift = async () => {
@@ -184,18 +292,18 @@ export default function DriverBoard() {
         await driverService.clockOut();
         setProfile({ ...profile, is_online: false });
         silentAudioRef.current?.pause();
+        releaseWakeLock();
         toast.success("Mode Istirahat (Offline)", { id: toastId, icon: '💤' });
 
       } else {
         await driverService.clockIn();
         setProfile({ ...profile, is_online: true });
         
-        // Memulai background keep-alive saat online (butuh interaksi user, makanya pas klik tombol)
+        // Start background keep-alive (needs user interaction)
         try {
-          silentAudioRef.current?.play();
-        } catch (e) {
-          console.log("Gagal memulai silent audio:", e);
-        }
+          silentAudioRef.current?.play().catch(() => {});
+        } catch { /* ignore */ }
+        requestWakeLock();
 
         toast.success("Mode Kerja (Online)", { id: toastId });
         initData(); 
@@ -241,11 +349,10 @@ export default function DriverBoard() {
       setIsPhotoModalOpen(false);
       setSelectedJobId(null);
       
-      // Update profile from backend to get fresh wallet_balance and stats
       try {
         const updatedProfile = await driverService.getDriverProfile();
         setProfile(updatedProfile);
-      } catch (e) {
+      } catch {
         if(profile) {
           setProfile({ ...profile, completed_today: profile.completed_today + 1 });
         }
@@ -272,7 +379,7 @@ export default function DriverBoard() {
   return (
     <div className="font-sans min-h-screen bg-surface-300 pb-32 pt-32 transition-colors duration-500">
       
-      {/* BACKGROUND KEEP-ALIVE AUDIO ELEMENT */}
+      {/* SILENT KEEP-ALIVE AUDIO (prevents browser from suspending tab) */}
       <audio 
         ref={silentAudioRef} 
         src={SILENT_AUDIO} 
@@ -280,9 +387,6 @@ export default function DriverBoard() {
         playsInline
         className="hidden" 
       />
-
-      {/* NOTIFICATION AUDIO ELEMENT */}
-      <audio id="notif-audio" src="/sounds/notification.mp3" preload="auto" className="hidden" />
 
       <DriverHeader name={profile?.name} profileImage={profile?.profile_image} />
       
@@ -374,10 +478,9 @@ export default function DriverBoard() {
           setIsPhotoModalOpen(false);
           setSelectedJobId(null);
         }} 
-        onSubmit={handleCompleteOrder} 
+        onSubmit={handleCompleteOrder}
       />
 
-      {/* TAMPILKAN MODAL NOTIFIKASI PESANAN BARU DRIVER */}
       <IncomingJobModal 
         isOpen={isIncomingModalOpen}
         jobData={newestJob}
