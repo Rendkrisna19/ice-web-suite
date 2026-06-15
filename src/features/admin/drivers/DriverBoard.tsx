@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import { Driver } from "@/types/driver";
+import { Driver, DriverPayload } from "@/types/driver";
 import { driverService } from "@/features/admin/drivers/services/driverService";
 import { confirmAlert } from "@/utils/alert";
 
@@ -65,14 +65,19 @@ export default function DriverBoard() {
     const formData = new FormData(form);
     
     // Mapping nama input form ke payload API (snake_case)
-    const payload = {
+    const payload: DriverPayload = {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      plate_number: formData.get("plateNumber") as string,
-      vehicle_type: formData.get("vehicleType") as string,
-      password: formData.get("password") as string || "password123", 
+      phone: (formData.get("phone") as string) || "",
+      plate_number: (formData.get("plateNumber") as string) || "",
+      vehicle_type: (formData.get("vehicleType") as string) || "motor",
     };
+
+    // Only include password when creating new driver (not editing)
+    const rawPassword = formData.get("password") as string;
+    if (rawPassword) {
+      payload.password = rawPassword;
+    }
 
     const toastId = toast.loading("Menyimpan data...");
 

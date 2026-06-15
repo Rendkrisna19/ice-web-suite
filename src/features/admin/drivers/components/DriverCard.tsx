@@ -1,6 +1,6 @@
 "use client";
 
-import { Bike, Car, Star, Wallet, Edit3, Trash2 } from "lucide-react";
+import { Bike, Car, Wallet, Edit3, Trash2 } from "lucide-react";
 import { Driver } from "@/types/driver";
 import { cn } from "@/utils/cn";
 import Image from "next/image";
@@ -16,9 +16,8 @@ export default function DriverCard({ driver, onEdit, onDelete }: DriverCardProps
   const vehicleType = driver.vehicle_type || "motor";
   const plateNumber = driver.plate_number || "-";
   const status = driver.status || "active"; // Default active jika backend null
-  const balance = driver.balance || 0;
-  const rating = driver.rating || 5.0;
-  const avatar = driver.avatar || `https://ui-avatars.com/api/?name=${driver.name}&background=random`;
+  const balance = driver.wallet_balance ?? driver.balance ?? 0; // wallet_balance from backend
+  const avatar = driver.profile_image || driver.avatar || `https://ui-avatars.com/api/?name=${driver.name}&background=random`;
 
   return (
     <div className="bg-white rounded-3xl p-5 shadow-sm border border-surface-200 hover:shadow-md transition-all group relative flex flex-col h-full">
@@ -62,21 +61,12 @@ export default function DriverCard({ driver, onEdit, onDelete }: DriverCardProps
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-5">
-         <div className="bg-surface-50 p-2.5 rounded-xl border border-surface-100 flex flex-col justify-center">
+      <div className="mb-5">
+         <div className="bg-surface-50 p-3 rounded-xl border border-surface-100 flex flex-col justify-center">
             <div className="flex items-center gap-1.5 text-neutral-400 mb-1">
                <Wallet size={12} /> <span className="text-[10px] font-bold uppercase">Saldo</span>
             </div>
-            <span className="font-bold text-primary-700 text-sm">Rp {balance.toLocaleString("id-ID")}</span>
-         </div>
-         <div className="bg-surface-50 p-2.5 rounded-xl border border-surface-100 flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 text-neutral-400 mb-1">
-               <Star size={12} /> <span className="text-[10px] font-bold uppercase">Rating</span>
-            </div>
-            <div className="flex items-center gap-1">
-               <span className="font-bold text-neutral-800 text-sm">{rating}</span>
-               <Star size={10} className="text-orange-400 fill-orange-400" />
-            </div>
+            <span className="font-bold text-primary-700 text-base">Rp {balance.toLocaleString("id-ID")}</span>
          </div>
       </div>
 

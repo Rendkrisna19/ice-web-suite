@@ -10,10 +10,14 @@ export interface Driver {
   is_online: boolean; // boolean 1/0
   is_busy: boolean;
   status?: "active" | "suspended" | "inactive";
-  balance?: number;
+  wallet_balance?: number; // Real balance from backend (field: wallet_balance)
+  balance?: number; // Legacy alias (frontend-only)
   rating?: number;
-  avatar?: string;
+  profile_image?: string; // Backend returns profile_image URL
+  avatar?: string; // Frontend-only fallback
   outlet_id?: number;
+  outlet?: { id: number; name: string }; // Backend eager-loaded outlet
+  completed_deliveries?: number; // Computed by backend
 }
 
 export interface DriverPayload {
