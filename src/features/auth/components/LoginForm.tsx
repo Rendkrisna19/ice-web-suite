@@ -40,7 +40,7 @@ export default function LoginForm() {
             router.push("/admin/dashboard");
             break;
           case "cashier":
-            router.push("/merchant/orders");
+            router.push("/merchant/pos");
             break;
           case "driver":
             router.push("/driver/job-list");

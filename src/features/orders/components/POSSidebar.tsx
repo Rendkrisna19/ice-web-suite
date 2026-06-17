@@ -19,8 +19,8 @@ export default function POSSidebar({ isOpen, onClose }: POSSidebarProps) {
   const router = useRouter();
 
   const MENU_ITEMS = [
-    // { label: "POS (Kasir)", icon: <Monitor size={20} />, href: "/merchant/pos" },
-    { label: "Pesanan Masuk", icon: <ShoppingBag size={20} />, href: "/merchant/orders" },
+    { label: "POS (Kasir)", icon: <Monitor size={20} />, href: "/merchant/pos" },
+    //{ label: "Pesanan Masuk", icon: <ShoppingBag size={20} />, href: "/merchant/orders" },
     { label: "Menu Merchants", icon: <Utensils size={20} />, href: "/merchant/menu" }, 
     { label: "Laporan", icon: <LayoutDashboard size={20} />, href: "/merchant/reports" },
     { label: "Pengaturan", icon: <Settings size={20} />, href: "/merchant/settings" },
