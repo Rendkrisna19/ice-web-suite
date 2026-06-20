@@ -18,6 +18,7 @@ import ProfileStats from "./components/ProfileStats";
 import WalletCard from "./components/WalletCard";
 import AccountInfo from "./components/AccountInfo";
 import ProfileMenu from "./components/ProfileMenu";
+import NavigationMap from "./components/NavigationMap";
 
 // =========================================================================
 // KOMPONEN MODAL NOTIFIKASI DRIVER
@@ -433,19 +434,33 @@ export default function DriverBoard() {
             {profile?.is_online && activeJobs.length > 0 && (
               <div className="flex flex-col gap-4 mt-4 animate-in slide-in-from-bottom-10 duration-500">
                 {activeJobs.map((job) => (
-                  <ActiveJobCard 
-                    key={job.id}
-                    job={job} 
-                    jobStatus={job.status === 'ready' ? 'assigned' : 'picked_up'} 
-                    onMainAction={
-                      job.status === 'ready' 
-                        ? () => handleStartDelivery(job.id) 
-                        : () => {
-                            setSelectedJobId(job.id);
-                            setIsPhotoModalOpen(true);
-                          }
-                    }
-                  />
+                  <div key={job.id} className="flex flex-col gap-4">
+                    <ActiveJobCard 
+                      job={job} 
+                      jobStatus={job.status === 'ready' ? 'assigned' : 'picked_up'} 
+                      onMainAction={
+                        job.status === 'ready' 
+                          ? () => handleStartDelivery(job.id) 
+                          : () => {
+                              setSelectedJobId(job.id);
+                              setIsPhotoModalOpen(true);
+                            }
+                      }
+                    />
+                    
+                    {/* Render NavigationMap for on_delivery jobs */}
+                    {job.status === 'on_delivery' && (
+                       <div className="px-4">
+                         <NavigationMap 
+                           job={job} 
+                           onComplete={() => {
+                              setSelectedJobId(job.id);
+                              setIsPhotoModalOpen(true);
+                           }} 
+                         />
+                       </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
