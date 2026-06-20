@@ -84,22 +84,33 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
         iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
         shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
       });
+      
+      // Custom Motor Icon
+      (window as any).motorIcon = new L.Icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
+        iconSize: [46, 46],
+        iconAnchor: [23, 23],
+        popupAnchor: [0, -20]
+      });
     });
   }, []);
 
   return (
-    <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-xl border border-surface-200 mt-4">
+    <div className="relative w-full h-[65vh] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white mt-2 mb-8 bg-[#E5E3DF] ring-1 ring-black/5">
       {/* Map Information Overlay */}
-      <div className="absolute top-4 left-4 right-4 z-[400] bg-white/90 backdrop-blur p-4 rounded-xl shadow-lg border border-white flex justify-between items-center">
+      <div className="absolute top-4 left-4 right-4 z-[400] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 flex justify-between items-center">
         <div>
-          <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Navigasi ke</p>
-          <p className="font-bold text-lg text-neutral-900">{job.customer_name}</p>
+          <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+             Navigasi ke
+          </p>
+          <p className="font-bold text-[15px] text-neutral-900 leading-tight">{job.customer_name}</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-black text-[#1A534B]">
+          <p className="text-2xl font-black text-emerald-600 tracking-tighter">
             {etaMinutes !== null ? `${etaMinutes} min` : '...'}
           </p>
-          <p className="text-xs text-neutral-500 font-medium">
+          <p className="text-[10px] text-neutral-500 font-bold bg-neutral-100 px-2 py-0.5 rounded-md inline-block mt-0.5">
             {distanceRemaining !== null ? `${distanceRemaining.toFixed(1)} km` : 'menghitung...'}
           </p>
         </div>
@@ -109,7 +120,8 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
         <MapContainer 
           // @ts-ignore
           center={[outletLat, outletLng]} 
-          zoom={13} 
+          zoom={14} 
+          zoomControl={false}
           style={{ height: '100%', width: '100%', zIndex: 10 }}
         >
           <TileLayer
@@ -118,9 +130,9 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
-          {/* Route Line */}
+          {/* Route Line (Gojek Style Thick Green Line) */}
           {routeCoords.length > 0 && (
-            <Polyline positions={routeCoords} color="#1A534B" weight={5} opacity={0.7} />
+            <Polyline positions={routeCoords} color="#10b981" weight={8} opacity={0.9} lineCap="round" lineJoin="round" />
           )}
 
           {/* Outlet Marker */}
@@ -139,8 +151,8 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
           </Marker>
 
           {/* Driver Live GPS Marker */}
-          {location.latitude !== 0 && (
-            <Marker position={[location.latitude, location.longitude]}>
+          {location.latitude !== 0 && (window as any).motorIcon && (
+            <Marker position={[location.latitude, location.longitude]} icon={(window as any).motorIcon}>
               <Popup>
                 <b>Posisi Saya</b>
               </Popup>

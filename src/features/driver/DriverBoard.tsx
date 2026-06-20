@@ -8,6 +8,8 @@ import { driverService } from "./services/driverService";
 import { confirmAlert } from "@/utils/alert";
 import { useSound } from "@/context/SoundContext";
 
+import { cn } from "@/utils/cn";
+
 // Components
 import DriverHeader from "./components/DriverHeader";
 import ShiftToggle from "./components/ShiftToggle";
@@ -393,7 +395,7 @@ export default function DriverBoard() {
       
       {activeTab === "tasks" ? (
         <>
-          <div className="max-w-md mx-auto px-0 relative z-30">
+          <div className={cn("max-w-md mx-auto px-0 relative z-30 transition-all", activeJobs.some(j => j.status === 'on_delivery') && "hidden")}>
              <ShiftToggle 
                 isOnline={!!profile?.is_online} 
                 isLoading={isToggling}
@@ -433,7 +435,9 @@ export default function DriverBoard() {
             {/* KONDISI 3: SEDANG MENJALANKAN ORDER (ACTIVE) */}
             {profile?.is_online && activeJobs.length > 0 && (
               <div className="flex flex-col gap-4 mt-4 animate-in slide-in-from-bottom-10 duration-500">
-                {activeJobs.map((job) => (
+                {activeJobs
+                  .filter(job => activeJobs.some(j => j.status === 'on_delivery') ? job.status === 'on_delivery' : true)
+                  .map((job) => (
                   <div key={job.id} className="flex flex-col gap-4">
                     <ActiveJobCard 
                       job={job} 
