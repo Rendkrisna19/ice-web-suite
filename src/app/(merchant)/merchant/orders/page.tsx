@@ -1,5 +1,5 @@
-import OrderBoard from "@/features/orders/OrderBoard";
+import DineInOrderBoard from "@/features/dine-in-orders/DineInOrderBoard";
 
 export default function MerchantOrdersPage() {
-  return <OrderBoard />;
+  return <DineInOrderBoard />;
 }

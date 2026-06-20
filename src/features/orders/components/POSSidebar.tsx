@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { 
-  X, ShoppingBag, LayoutDashboard, Settings, LogOut, Monitor, Utensils 
+import {
+  X, ShoppingBag, LayoutDashboard, Settings, LogOut, Monitor, Utensils, QrCode
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import toast from "react-hot-toast";
@@ -20,8 +20,9 @@ export default function POSSidebar({ isOpen, onClose }: POSSidebarProps) {
 
   const MENU_ITEMS = [
     { label: "POS (Kasir)", icon: <Monitor size={20} />, href: "/merchant/pos" },
-    //{ label: "Pesanan Masuk", icon: <ShoppingBag size={20} />, href: "/merchant/orders" },
-    { label: "Menu Merchants", icon: <Utensils size={20} />, href: "/merchant/menu" }, 
+    { label: "Pesanan Masuk", icon: <ShoppingBag size={20} />, href: "/merchant/orders" },
+    { label: "Meja & QR Code", icon: <QrCode size={20} />, href: "/merchant/tables" },
+    { label: "Menu Merchants", icon: <Utensils size={20} />, href: "/merchant/menu" },
     { label: "Laporan", icon: <LayoutDashboard size={20} />, href: "/merchant/reports" },
     { label: "Pengaturan", icon: <Settings size={20} />, href: "/merchant/settings" },
   ];

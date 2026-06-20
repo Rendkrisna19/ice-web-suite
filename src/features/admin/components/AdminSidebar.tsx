@@ -5,17 +5,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { 
-  LayoutDashboard, 
-  Store, 
-  UtensilsCrossed, 
-  Users, 
-  Bike, 
-  LogOut, 
+  LayoutDashboard,
+  Store,
+  UtensilsCrossed,
+  // Users,
+  // Bike,
+  LogOut,
   FileBarChart,
   ChevronLeft,
   ChevronRight,
   Calculator,
-  RefreshCcw 
+  // RefreshCcw
 } from "lucide-react";
 
 import { cn } from "@/utils/cn";
@@ -56,21 +56,21 @@ export default function AdminSidebar({
       icon: Calculator, 
       href: "/admin/pricing" 
     },
-    { 
-      name: "Pelanggan", // Folder: customers
-      icon: Users, 
-      href: "/admin/customers" 
-    },
-    { 
-      name: "Kurir Driver", // Folder: drivers
-      icon: Bike, 
-      href: "/admin/drivers" 
-    },
-    { 
-      name: "Pesanan Batal", // Folder: refunds (BARU)
-      icon: RefreshCcw, 
-      href: "/admin/rejects" 
-    },
+    // {
+    //   name: "Pelanggan", // Folder: customers
+    //   icon: Users,
+    //   href: "/admin/customers"
+    // },
+    // {
+    //   name: "Kurir Driver", // Folder: drivers
+    //   icon: Bike,
+    //   href: "/admin/drivers"
+    // },
+    // {
+    //   name: "Pesanan Batal", // Folder: refunds (BARU)
+    //   icon: RefreshCcw,
+    //   href: "/admin/rejects"
+    // },
     { 
       name: "Laporan", // Folder: reports
       icon: FileBarChart, 

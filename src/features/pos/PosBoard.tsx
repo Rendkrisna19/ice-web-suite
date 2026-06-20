@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { 
-  ShoppingCart, Search, Monitor, Loader2, RefreshCw, Menu, 
-  User, ChefHat, Printer, CreditCard, Clock, 
-  Calendar, ChevronLeft, ChevronRight, Receipt, Coffee, Utensils, CheckCircle2, X, Store
+import {
+  ShoppingCart, Search, Monitor, Loader2, RefreshCw, Menu,
+  User, ChefHat, Printer, CreditCard, Clock,
+  Calendar, ChevronLeft, ChevronRight, Receipt, Coffee, Utensils, CheckCircle2, X, Store, Armchair
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/utils/cn";
@@ -14,11 +14,82 @@ import { CartItem } from "./components/CartItem";
 import POSSidebar from "../orders/components/POSSidebar";
 import { posService } from "./services/posservice";
 import { authService } from "@/features/auth/services/authService";
+import { tableService } from "@/features/tables/services/tableService";
 
 type PosTab = "katalog" | "antrean";
 type QueueTab = "aktif" | "riwayat";
 type FilterDate = "all" | "today" | "month";
 type CategoryFilter = "all" | "makanan" | "minuman";
+
+// Satu baris antrean: 1 transaksi POS manual, ATAU 1 meja dine-in (bisa berisi beberapa tiket dapur yang digabung jadi 1 tagihan)
+interface QueueRow {
+  kind: "pos" | "dine_in";
+  key: string;
+  displayName: string;
+  created_at: string;
+  total_price: number;
+  itemCount: number;
+  tableId?: number;
+  orders: any[];
+}
+
+function buildQueueRows(orders: any[]): QueueRow[] {
+  const posRows: QueueRow[] = orders
+    .filter((o) => o.order_type !== "dine_in")
+    .map((o) => ({
+      kind: "pos",
+      key: `pos-${o.id}`,
+      displayName: o.delivery_address || "Pelanggan POS",
+      created_at: o.created_at,
+      total_price: Number(o.total_price || 0),
+      itemCount: o.items?.length || 0,
+      orders: [o],
+    }));
+
+  // Group dine-in per meja + batch pembayaran (paid_at sama = dibayar dalam 1 aksi "Tutup & Bayar")
+  const groups = new Map<string, any[]>();
+  orders.filter((o) => o.order_type === "dine_in").forEach((o) => {
+    const tableId = o.table_id || o.table?.id;
+    if (!tableId) return;
+    const groupKey = `${tableId}|${o.paid_at || "open"}`;
+    if (!groups.has(groupKey)) groups.set(groupKey, []);
+    groups.get(groupKey)!.push(o);
+  });
+
+  const dineInRows: QueueRow[] = Array.from(groups.values()).map((ords) => {
+    const sorted = [...ords].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const tableId = sorted[0].table_id || sorted[0].table?.id;
+    return {
+      kind: "dine_in",
+      key: `table-${tableId}-${sorted[0].paid_at || "open"}`,
+      displayName: sorted[0].table?.name || `Meja #${tableId}`,
+      created_at: sorted[0].created_at,
+      total_price: ords.reduce((sum, o) => sum + Number(o.total_price || 0), 0),
+      itemCount: ords.reduce((sum, o) => sum + (o.items?.length || 0), 0),
+      tableId,
+      orders: sorted,
+    };
+  });
+
+  return [...posRows, ...dineInRows].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
+// Bentuk 1 objek "order" gabungan supaya bisa dipakai apa adanya oleh template struk yang sudah ada
+function toReceiptOrder(row: QueueRow) {
+  if (row.kind === "pos") return row.orders[0];
+  const items = row.orders.flatMap((o) => o.items || []);
+  return {
+    id: row.orders[0].id,
+    order_number: `MEJA-${row.displayName}`,
+    delivery_address: row.displayName,
+    items,
+    subtotal: row.orders.reduce((sum, o) => sum + Number(o.subtotal || 0), 0),
+    tax: row.orders.reduce((sum, o) => sum + Number(o.tax || 0), 0),
+    total_price: row.total_price,
+    created_at: row.created_at,
+    status: row.orders[0].status,
+  };
+}
 
 export default function PosBoard() {
   // --- STATE UTAMA ---
@@ -69,8 +140,8 @@ export default function PosBoard() {
       const fetchedProducts = Array.isArray(prodData) ? prodData : (prodData.data || []);
       const allOrders = Array.isArray(orderData) ? orderData : (orderData.data || []);
 
-      // Hanya tampilkan transaksi offline POS (order_number berawalan 'POS-')
-      const fetchedOrders = allOrders.filter((o: any) => o.order_number?.startsWith('POS-'));
+      // Tampilkan transaksi yang ditangani langsung kasir: POS manual + pesanan meja (dine-in)
+      const fetchedOrders = allOrders.filter((o: any) => o.order_type === 'pos' || o.order_type === 'dine_in');
 
       setProducts(fetchedProducts);
       setTaxConfig(Number(configData.tax_percentage || configData.data?.tax_percentage || 11));
@@ -81,11 +152,11 @@ export default function PosBoard() {
         setOutletInfo(userData.outlet);
       }
 
-      // STRICT FILTER: Mencegah yang sudah selesai balik lagi ke antrean aktif
-      setActiveOrders(fetchedOrders.filter((o: any) => !['completed', 'paid', 'cancelled'].includes(o.status)));
+      // Acuan utama: belum ada paid_at = masih harus dibayar (berlaku sama utk POS & dine-in)
+      setActiveOrders(fetchedOrders.filter((o: any) => !o.paid_at && o.status !== 'cancelled'));
 
       // Tambahkan ke riwayat jika belum ada (mencegah duplikasi data optimistik)
-      const fetchedHistory = fetchedOrders.filter((o: any) => ['completed', 'paid'].includes(o.status));
+      const fetchedHistory = fetchedOrders.filter((o: any) => !!o.paid_at);
       setHistoryOrders(prev => {
         const newHistory = [...prev];
         fetchedHistory.forEach((fo: any) => {
@@ -102,6 +173,10 @@ export default function PosBoard() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  // Antrean ditampilkan per "baris": 1 transaksi POS, atau 1 meja dine-in (tiket-tiketnya digabung)
+  const activeQueueRows = useMemo(() => buildQueueRows(activeOrders), [activeOrders]);
+  const historyQueueRows = useMemo(() => buildQueueRows(historyOrders), [historyOrders]);
 
   // --- LOGIC KERANJANG & KATALOG ---
   const filteredProducts = useMemo(() => {
@@ -201,10 +276,10 @@ export default function PosBoard() {
     }
   };
 
-  // --- HANDLER: BAYAR & CETAK KASIR ---
-  const handlePay = async (order: any) => {
-    // ✅ GUARD: Pastikan order memiliki ID yang valid (bukan temp ID)
-    if (!order.id || String(order.id).startsWith('temp-')) {
+  // --- HANDLER: BAYAR & CETAK KASIR (POS manual ATAU 1 meja dine-in sekaligus) ---
+  const handlePay = async (row: QueueRow) => {
+    // ✅ GUARD: Pastikan order POS memiliki ID yang valid (bukan temp ID)
+    if (row.kind === "pos" && (!row.orders[0].id || String(row.orders[0].id).startsWith('temp-'))) {
       toast.error("Data pesanan belum sinkron. Mohon tunggu sebentar atau refresh halaman.");
       fetchData(true);
       return;
@@ -212,31 +287,35 @@ export default function PosBoard() {
 
     const tid = toast.loading("Memproses Pembayaran...");
     try {
-      const response = await posService.completePayment(order.id, "tunai");
-      
-      // posService sudah mengekstrak .data dari response Laravel, jadi response IS the order
-      const serverCompleted = response;
-      const completedOrder = {
-        ...order, // Pertahankan semua data order yang sudah ada (subtotal, tax, items, dll)
-        ...serverCompleted, // Override dengan data terbaru dari server
-        status: serverCompleted?.status ?? 'completed',
-        paid_at: serverCompleted?.paid_at ?? new Date().toISOString(),
-      };
+      if (row.kind === "dine_in" && row.tableId) {
+        // Bayar 1x utk semua tiket meja ini -> backend set paid_at di semua order -> meja otomatis kosong lagi
+        await tableService.closeBill(row.tableId);
+      } else {
+        await posService.completePayment(row.orders[0].id, "tunai");
+      }
 
-      // OPTIMISTIC UPDATE: Hilang dari Antrean, Muncul di Selesai seketika
-      setActiveOrders(prev => prev.filter(o => o.id !== order.id));
-      setHistoryOrders(prev => [completedOrder, ...prev]);
+      const paidAt = new Date().toISOString();
+      const orderIds = new Set(row.orders.map((o) => o.id));
+
+      // OPTIMISTIC UPDATE: Hilang dari Antrean, Muncul di Riwayat seketika
+      setActiveOrders(prev => prev.filter(o => !orderIds.has(o.id)));
+      setHistoryOrders(prev => [
+        ...row.orders.map((o) => ({ ...o, status: 'completed', paid_at: paidAt })),
+        ...prev,
+      ]);
 
       toast.success(
         <div className="flex flex-col">
           <span className="font-bold">Pembayaran Lunas!</span>
-          <span className="text-xs opacity-80">Pesanan dipindah ke Riwayat Selesai</span>
-        </div>, 
+          <span className="text-xs opacity-80">
+            {row.kind === "dine_in" ? `${row.displayName} kembali kosong` : "Pesanan dipindah ke Riwayat Selesai"}
+          </span>
+        </div>,
         { id: tid, duration: 4000 }
       );
-      
+
       setIsKitchenPrint(false);
-      setSelectedOrder(completedOrder);
+      setSelectedOrder(toReceiptOrder(row));
       setIsReceiptModalOpen(true);
       fetchData(true);
     } catch (e) {
@@ -252,22 +331,22 @@ export default function PosBoard() {
 
   // --- FILTER & PAGINATION ANTREAN & RIWAYAT ---
   const filteredQueue = useMemo(() => {
-    const baseData = queueTab === "aktif" ? activeOrders : historyOrders;
+    const baseData = queueTab === "aktif" ? activeQueueRows : historyQueueRows;
     let result = Array.isArray(baseData) ? baseData : [];
-    
-    if (queueSearch) result = result.filter(o => o.delivery_address?.toLowerCase().includes(queueSearch.toLowerCase()));
+
+    if (queueSearch) result = result.filter(row => row.displayName?.toLowerCase().includes(queueSearch.toLowerCase()));
 
     // ✅ Filter tanggal yang berbeda untuk antrean aktif vs riwayat
     const dateFilter = queueTab === "aktif" ? activeDateFilter : historyDateFilter;
     const today = new Date();
-    if (dateFilter === "today") result = result.filter(o => new Date(o.created_at).toDateString() === today.toDateString());
-    else if (dateFilter === "month") result = result.filter(o => 
-      new Date(o.created_at).getMonth() === today.getMonth() && 
-      new Date(o.created_at).getFullYear() === today.getFullYear()
+    if (dateFilter === "today") result = result.filter(row => new Date(row.created_at).toDateString() === today.toDateString());
+    else if (dateFilter === "month") result = result.filter(row =>
+      new Date(row.created_at).getMonth() === today.getMonth() &&
+      new Date(row.created_at).getFullYear() === today.getFullYear()
     );
 
     return result;
-  }, [activeOrders, historyOrders, queueTab, queueSearch, activeDateFilter, historyDateFilter]);
+  }, [activeQueueRows, historyQueueRows, queueTab, queueSearch, activeDateFilter, historyDateFilter]);
 
   const totalPages = Math.ceil(filteredQueue.length / itemsPerPage);
   const paginatedQueue = filteredQueue.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -331,7 +410,7 @@ export default function PosBoard() {
           <nav className="flex bg-black/25 p-1 rounded-xl">
             <button onClick={() => setActiveTab("katalog")} className={cn("px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-bold transition-all", activeTab === "katalog" ? "bg-white text-[#15423C] shadow-sm" : "text-white/80 hover:bg-white/10")}>Katalog Menu</button>
             <button onClick={() => setActiveTab("antrean")} className={cn("px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-bold transition-all flex items-center gap-2", activeTab === "antrean" ? "bg-white text-[#15423C] shadow-sm" : "text-white/80 hover:bg-white/10")}>
-              Transaksi {activeOrders.length > 0 && <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-md text-[10px] leading-none animate-pulse">{activeOrders.length}</span>}
+              Transaksi {activeQueueRows.length > 0 && <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-md text-[10px] leading-none animate-pulse">{activeQueueRows.length}</span>}
             </button>
           </nav>
         </div>
@@ -426,7 +505,7 @@ export default function PosBoard() {
                   {/* TAB SWITCHER */}
                   <div className="flex items-center bg-surface-100 border border-surface-200 rounded-xl p-1 w-full sm:w-auto">
                     <button onClick={() => setQueueTab("aktif")} className={cn("flex-1 px-4 py-2 rounded-lg text-xs lg:text-sm font-bold whitespace-nowrap transition-all relative", queueTab === "aktif" ? "bg-white text-[#15423C] shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>
-                      Antrean Aktif {activeOrders.length > 0 && <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] animate-pulse border border-white">{activeOrders.length}</span>}
+                      Antrean Aktif {activeQueueRows.length > 0 && <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] animate-pulse border border-white">{activeQueueRows.length}</span>}
                     </button>
                     <button onClick={() => setQueueTab("riwayat")} className={cn("flex-1 px-4 py-2 rounded-lg text-xs lg:text-sm font-bold whitespace-nowrap transition-all", queueTab === "riwayat" ? "bg-white text-[#15423C] shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>
                       Riwayat Selesai
@@ -481,39 +560,50 @@ export default function PosBoard() {
                         </td>
                       </tr>
                     ) : (
-                      paginatedQueue.map((order) => (
-                        <tr key={order.id} className="hover:bg-surface-50 transition-colors group">
+                      paginatedQueue.map((row) => {
+                        const isTemp = row.kind === "pos" && String(row.orders[0].id).startsWith('temp-');
+                        return (
+                        <tr key={row.key} className="hover:bg-surface-50 transition-colors group">
                           <td className="p-3 lg:p-5 text-xs lg:text-sm font-medium text-neutral-500">
                             <div className="flex flex-col gap-1">
-                              <span className="flex items-center gap-1"><Calendar size={12} className="text-neutral-400" /> {new Date(order.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year:'numeric' })}</span>
-                              <span className="flex items-center gap-1"><Clock size={12} className="text-neutral-400" /> {new Date(order.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                              <span className="flex items-center gap-1"><Calendar size={12} className="text-neutral-400" /> {new Date(row.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year:'numeric' })}</span>
+                              <span className="flex items-center gap-1"><Clock size={12} className="text-neutral-400" /> {new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
                             </div>
                           </td>
                           <td className="p-3 lg:p-5">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#15423C]/10 flex items-center justify-center text-[#15423C] shrink-0"><User size={16} /></div>
-                              <span className="font-bold text-neutral-800 text-sm lg:text-base line-clamp-1">{order.delivery_address || "Pelanggan POS"}</span>
+                              <div className="w-10 h-10 rounded-full bg-[#15423C]/10 flex items-center justify-center text-[#15423C] shrink-0">
+                                {row.kind === "dine_in" ? <Armchair size={16} /> : <User size={16} />}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-neutral-800 text-sm lg:text-base line-clamp-1">{row.displayName}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                  {row.kind === "dine_in" ? `Pesanan Meja${row.orders.length > 1 ? ` (${row.orders.length} tiket)` : ""}` : "POS Manual"}
+                                </span>
+                              </div>
                             </div>
                           </td>
                           <td className="p-3 lg:p-5">
                             <div className="flex flex-col">
-                              <span className="font-black text-base lg:text-lg text-primary-700">Rp {Math.floor(Number(order.total_price)).toLocaleString('id-ID')}</span>
-                              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">{order.items?.length || 0} Item</span>
+                              <span className="font-black text-base lg:text-lg text-primary-700">Rp {Math.floor(row.total_price).toLocaleString('id-ID')}</span>
+                              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">{row.itemCount} Item</span>
                             </div>
                           </td>
                           <td className="p-3 lg:p-5 text-right">
                             {queueTab === "aktif" ? (
                               <div className="flex items-center justify-end gap-2">
-                                <button onClick={() => openKitchenModal(order)} className="bg-surface-100 hover:bg-surface-200 text-neutral-600 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all" title="Lihat & Cetak Tiket Dapur">
-                                  <Printer size={14} /> Cetak Dapur
-                                </button>
-                                <button 
-                                  onClick={() => handlePay(order)} 
-                                  disabled={String(order.id).startsWith('temp-')}
+                                {row.kind === "pos" && (
+                                  <button onClick={() => openKitchenModal(row.orders[0])} className="bg-surface-100 hover:bg-surface-200 text-neutral-600 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all" title="Lihat & Cetak Tiket Dapur">
+                                    <Printer size={14} /> Cetak Dapur
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handlePay(row)}
+                                  disabled={isTemp}
                                   className="bg-[#15423C] hover:bg-[#1a534b] text-white px-5 py-2.5 rounded-lg font-bold text-xs lg:text-sm flex items-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all"
-                                  title={String(order.id).startsWith('temp-') ? "Menunggu sinkronisasi..." : "Bayar & Cetak Struk"}
+                                  title={isTemp ? "Menunggu sinkronisasi..." : "Bayar & Cetak Struk"}
                                 >
-                                  {String(order.id).startsWith('temp-') ? (
+                                  {isTemp ? (
                                     <><Loader2 size={16} className="animate-spin" /> Sinkronisasi...</>
                                   ) : (
                                     <><CreditCard size={16} /> Bayar & Cetak</>
@@ -522,7 +612,7 @@ export default function PosBoard() {
                               </div>
                             ) : (
                               <div className="flex items-center justify-end gap-2">
-                                <button onClick={() => openReceiptModal(order)} className="bg-surface-100 hover:bg-[#15423C] hover:text-white text-neutral-600 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
+                                <button onClick={() => openReceiptModal(toReceiptOrder(row))} className="bg-surface-100 hover:bg-[#15423C] hover:text-white text-neutral-600 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
                                   <Printer size={14} /> Cetak Struk
                                 </button>
                                 <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm">
@@ -532,7 +622,7 @@ export default function PosBoard() {
                             )}
                           </td>
                         </tr>
-                      ))
+                      );})
                     )}
                   </tbody>
                 </table>
