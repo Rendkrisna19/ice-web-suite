@@ -10,6 +10,8 @@ import { useSound } from "@/context/SoundContext";
 
 import { cn } from "@/utils/cn";
 
+import { useRouter } from "next/navigation";
+
 // Components
 import DriverHeader from "./components/DriverHeader";
 import ShiftToggle from "./components/ShiftToggle";
@@ -80,6 +82,7 @@ export default function DriverBoard() {
 
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const router = useRouter();
 
   // Sound context for reliable audio playback
   const { playOnce } = useSound();
@@ -327,7 +330,8 @@ export default function DriverBoard() {
       const toastId = toast.loading("Memulai pengantaran...");
       try {
         await driverService.startDelivery(orderId);
-        toast.success("Status: Mengantar ke Customer", { id: toastId });
+      toast.success("Mulai mengantar pesanan!");
+      router.push(`/driver/navigation/${orderId}`);
         
         const updatedJobs = await driverService.getActiveJobs();
         setActiveJobs(updatedJobs);
@@ -395,7 +399,7 @@ export default function DriverBoard() {
       
       {activeTab === "tasks" ? (
         <>
-          <div className={cn("max-w-md mx-auto px-0 relative z-30 transition-all", activeJobs.some(j => j.status === 'on_delivery') && "hidden")}>
+          <div className="max-w-md mx-auto px-0 relative z-30">
              <ShiftToggle 
                 isOnline={!!profile?.is_online} 
                 isLoading={isToggling}
@@ -435,9 +439,7 @@ export default function DriverBoard() {
             {/* KONDISI 3: SEDANG MENJALANKAN ORDER (ACTIVE) */}
             {profile?.is_online && activeJobs.length > 0 && (
               <div className="flex flex-col gap-4 mt-4 animate-in slide-in-from-bottom-10 duration-500">
-                {activeJobs
-                  .filter(job => activeJobs.some(j => j.status === 'on_delivery') ? job.status === 'on_delivery' : true)
-                  .map((job) => (
+                {activeJobs.map((job) => (
                   <div key={job.id} className="flex flex-col gap-4">
                     <ActiveJobCard 
                       job={job} 
@@ -445,25 +447,9 @@ export default function DriverBoard() {
                       onMainAction={
                         job.status === 'ready' 
                           ? () => handleStartDelivery(job.id) 
-                          : () => {
-                              setSelectedJobId(job.id);
-                              setIsPhotoModalOpen(true);
-                            }
+                          : () => router.push(`/driver/navigation/${job.id}`)
                       }
                     />
-                    
-                    {/* Render NavigationMap for on_delivery jobs */}
-                    {job.status === 'on_delivery' && (
-                       <div className="px-4">
-                         <NavigationMap 
-                           job={job} 
-                           onComplete={() => {
-                              setSelectedJobId(job.id);
-                              setIsPhotoModalOpen(true);
-                           }} 
-                         />
-                       </div>
-                    )}
                   </div>
                 ))}
               </div>

@@ -96,7 +96,7 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
   }, []);
 
   return (
-    <div className="relative w-full h-[65vh] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white mt-2 mb-8 bg-[#E5E3DF] ring-1 ring-black/5">
+    <div className="relative w-full h-full overflow-hidden bg-[#E5E3DF]">
       {/* Map Information Overlay */}
       <div className="absolute top-4 left-4 right-4 z-[400] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 flex justify-between items-center">
         <div>
