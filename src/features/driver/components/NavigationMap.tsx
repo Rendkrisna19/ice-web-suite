@@ -35,9 +35,11 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
   const outletLat = job.outlet_lat;
   const outletLng = job.outlet_lng;
 
-  // Posisi center peta: prioritas GPS driver, fallback ke outlet
-  const centerLat = location.latitude !== 0 ? location.latitude : outletLat;
-  const centerLng = location.longitude !== 0 ? location.longitude : outletLng;
+  // Posisi center peta: prioritas GPS driver, fallback ke outlet, fallback terakhir ke Medan
+  const fallbackLat = 3.5852;
+  const fallbackLng = 98.6756;
+  const centerLat = location.latitude !== 0 ? location.latitude : (outletLat || fallbackLat);
+  const centerLng = location.longitude !== 0 ? location.longitude : (outletLng || fallbackLng);
 
   // Kirim GPS ke backend dan hitung ETA+rute saat posisi berubah
   useEffect(() => {
@@ -136,7 +138,7 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
   }, []);
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#E5E3DF]">
+    <div className="absolute inset-0 overflow-hidden bg-[#E5E3DF]">
       {/* Map Information Overlay */}
       <div className="absolute top-16 left-4 right-4 z-[400] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 flex justify-between items-center">
         <div>
