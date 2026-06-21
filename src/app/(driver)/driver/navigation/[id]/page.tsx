@@ -40,8 +40,20 @@ export default function NavigationPage() {
     setIsPhotoModalOpen(true);
   };
 
-  const handlePhotoUploadSuccess = () => {
-    router.replace("/driver/job-list");
+  const handlePhotoUploadSubmit = async (photoBlobUrl: string) => {
+    if (!job) return;
+    try {
+      const response = await fetch(photoBlobUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "proof.jpg", { type: "image/jpeg" });
+
+      await driverService.completeDelivery(job.id, file);
+      
+      setIsPhotoModalOpen(false);
+      router.replace("/driver/job-list");
+    } catch (error) {
+      console.error("Gagal menyelesaikan order", error);
+    }
   };
 
   if (isLoading) {
@@ -77,9 +89,8 @@ export default function NavigationPage() {
       {/* PHOTO PROOF MODAL */}
       <PhotoProofModal 
         isOpen={isPhotoModalOpen}
-        orderId={job.id}
         onClose={() => setIsPhotoModalOpen(false)}
-        onSuccess={handlePhotoUploadSuccess}
+        onSubmit={handlePhotoUploadSubmit}
       />
     </main>
   );
