@@ -8,6 +8,8 @@ import NavigationMap from "@/features/driver/components/NavigationMap";
 import { Loader2, ArrowLeft } from "lucide-react";
 import PhotoProofModal from "@/features/driver/components/PhotoProofModal";
 
+import toast from "react-hot-toast";
+
 export default function NavigationPage() {
   const params = useParams();
   const router = useRouter();
@@ -40,19 +42,18 @@ export default function NavigationPage() {
     setIsPhotoModalOpen(true);
   };
 
-  const handlePhotoUploadSubmit = async (photoBlobUrl: string) => {
+  const handlePhotoUploadSubmit = async (file: File) => {
     if (!job) return;
     try {
-      const response = await fetch(photoBlobUrl);
-      const blob = await response.blob();
-      const file = new File([blob], "proof.jpg", { type: "image/jpeg" });
-
       await driverService.completeDelivery(job.id, file);
       
+      toast.success("Pengiriman berhasil diselesaikan!");
       setIsPhotoModalOpen(false);
       router.replace("/driver/job-list");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gagal menyelesaikan order", error);
+      const msg = error.response?.data?.message || "Gagal mengupload bukti (Maksimal foto 5MB).";
+      toast.error(msg);
     }
   };
 

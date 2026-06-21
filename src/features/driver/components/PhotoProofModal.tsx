@@ -6,28 +6,36 @@ import Image from "next/image"; // Pakai Image Next.js
 interface PhotoProofModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (photoUrl: string) => void;
+  onSubmit: (file: File) => Promise<void>;
 }
 
 export default function PhotoProofModal({ isOpen, onClose, onSubmit }: PhotoProofModalProps) {
   const [preview, setPreview] = useState<string | null>(null);
+  const [fileObj, setFileObj] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setFileObj(file);
       const url = URL.createObjectURL(file);
       setPreview(url);
     }
   };
 
-  // Simulasi submit (karena belum ada backend upload beneran)
-  const handleSubmit = () => {
-    if (preview) {
-      // Di real app, disini upload ke server dulu
-      onSubmit(preview); 
-      setPreview(null);
+  // Submit file asli ke parent component
+  const handleSubmit = async () => {
+    if (preview && fileObj) {
+      setIsSubmitting(true);
+      try {
+        await onSubmit(fileObj); 
+        setPreview(null);
+        setFileObj(null);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -66,11 +74,13 @@ export default function PhotoProofModal({ isOpen, onClose, onSubmit }: PhotoProo
 
         <div className="p-4 bg-surface-50 border-t">
           <button 
-            disabled={!preview}
+            disabled={!preview || isSubmitting}
             onClick={handleSubmit}
             className="w-full py-3.5 rounded-xl bg-primary-500 text-white font-bold text-sm shadow-lg shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Kirim Bukti & Selesaikan <CheckCircle2 size={18}/>
+            {isSubmitting ? "Mengupload..." : (
+              <>Kirim Bukti & Selesaikan <CheckCircle2 size={18}/></>
+            )}
           </button>
         </div>
       </div>
