@@ -342,15 +342,11 @@ export default function DriverBoard() {
     }, { title: "Mulai Pengantaran", type: "info", confirmText: "Ya, Sudah" });
   };
 
-  const handleCompleteOrder = async (photoBlobUrl: string) => {
+  const handleCompleteOrder = async (file: File) => {
     if (!selectedJobId) return;
     const toastId = toast.loading("Mengupload bukti...");
     
     try {
-      const response = await fetch(photoBlobUrl);
-      const blob = await response.blob();
-      const file = new File([blob], "proof.jpg", { type: "image/jpeg" });
-
       await driverService.completeDelivery(selectedJobId, file);
       
       setIsPhotoModalOpen(false);
@@ -370,8 +366,9 @@ export default function DriverBoard() {
       knownJobIdsRef.current = new Set(updatedJobs.map(j => j.id));
 
       toast.success("Order Selesai! Menunggu validasi.", { id: toastId });
-    } catch (error) {
-      toast.error("Gagal upload bukti", { id: toastId });
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Gagal upload bukti (Maksimal 5MB)";
+      toast.error(msg, { id: toastId });
     }
   };
 
