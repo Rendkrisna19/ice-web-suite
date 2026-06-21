@@ -13,6 +13,8 @@ export interface DriverJob {
   total_price: number;
   lat: number;
   lng: number;
+  outlet_lat: number;
+  outlet_lng: number;
   items: DriverJobItem[];
   status: 'ready' | 'on_delivery' | 'delivered' | 'completed';
   note?: string; // Catatan tambahan order

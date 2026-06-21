@@ -89,6 +89,8 @@ export const driverService = {
         total_price: Number(order.total_price),
         lat: Number(order.delivery_latitude) || 0,
         lng: Number(order.delivery_longitude) || 0,
+        outlet_lat: Number((order as any).outlet_latitude) || 0,
+        outlet_lng: Number((order as any).outlet_longitude) || 0,
         status: order.status,
         note: order.notes || "",
         items: (order.items || []).map((item: ApiOrderItem) => ({
