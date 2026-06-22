@@ -2,24 +2,28 @@
 
 import { useState } from "react";
 import { User, Settings, HelpCircle, ChevronRight, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import ChangePasswordModal from "./ChangePasswordModal"; // Import Modal
+import ChangePasswordModal from "./ChangePasswordModal";
+import EditProfileModal from "./EditProfileModal";
 import { confirmAlert } from "@/utils/alert";
 
-export default function ProfileMenu() {
-  const router = useRouter();
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+interface ProfileMenuProps {
+  name?: string;
+  phone?: string;
+  profileImage?: string;
+  onProfileUpdate?: () => void;
+}
 
-  // Logic Menu Action
+export default function ProfileMenu({ name = "", phone = "", profileImage, onProfileUpdate }: ProfileMenuProps) {
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+
   const handleMenuClick = (label: string) => {
     switch (label) {
       case "Edit Profil":
-        // Navigasi ke halaman edit profil (nanti dibuat)
-        toast("Fitur Edit Profil segera hadir!", { icon: "🚧" });
+        setIsEditProfileModalOpen(true);
         break;
       case "Pengaturan Aplikasi":
-        // Buka Modal Password
         setIsPasswordModalOpen(true);
         break;
       case "Bantuan & Laporan":
@@ -32,9 +36,7 @@ export default function ProfileMenu() {
 
   const handleLogout = async () => {
     confirmAlert("Yakin ingin keluar dari akun?", () => {
-      // Clear token storage
       localStorage.removeItem("token"); 
-      // Redirect
       window.location.href = "/login"; 
     }, {
       title: "Keluar Akun",
@@ -69,7 +71,6 @@ export default function ProfileMenu() {
             </button>
           ))}
           
-          {/* Logout Button */}
           <button 
               onClick={handleLogout}
               className="w-full flex items-center justify-between p-4 hover:bg-danger-50 transition-colors rounded-2xl group mt-1"
@@ -84,10 +85,20 @@ export default function ProfileMenu() {
         </div>
       </div>
 
-      {/* Render Modal disini */}
       <ChangePasswordModal 
         isOpen={isPasswordModalOpen} 
         onClose={() => setIsPasswordModalOpen(false)} 
+      />
+
+      <EditProfileModal 
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+        currentName={name}
+        currentPhone={phone}
+        currentProfileImage={profileImage}
+        onSuccess={() => {
+           if (onProfileUpdate) onProfileUpdate();
+        }}
       />
     </>
   );

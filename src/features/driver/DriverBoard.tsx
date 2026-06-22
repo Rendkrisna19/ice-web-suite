@@ -468,7 +468,12 @@ export default function DriverBoard() {
               phone={profile?.phone} 
               plate={profile?.plate_number} 
            />
-           <ProfileMenu />
+           <ProfileMenu 
+               name={profile?.name}
+               phone={profile?.phone}
+               profileImage={profile?.profile_image}
+               onProfileUpdate={initData}
+           />
         </div>
       )}
 

@@ -68,7 +68,7 @@ export default function NavigationPage() {
   if (!job) return null;
 
   return (
-    <main className="min-h-screen bg-surface-100 flex flex-col relative">
+    <main className="h-[100dvh] w-full bg-surface-100 flex flex-col relative overflow-hidden">
       {/* HEADER (Floating over map) */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex items-center gap-3">
         <button 
