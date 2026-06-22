@@ -118,7 +118,7 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
       });
       
       // Custom Motor Icon (Match Flutter App Icons.two_wheeler)
-      (window as any).motorIcon = new L.divIcon({
+      (window as any).motorIcon = L.divIcon({
         className: "custom-driver-marker",
         html: `<div style="background-color: #1A534B; width: 48px; height: 48px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
                  <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="white"><path d="M280-160q-66 0-113-47T120-320q0-66 47-113t113-47q42 0 78.5 22.5T415-397l85-83-80-80 56-56 56 56 47-47-53-73 66-48 76 104q16-4 32.5-6t33.5-2q99 0 169.5 70.5T880-480q0 99-70.5 169.5T640-240q-68 0-123-38.5T436-379l-49 47q21 44 60 76t88 36v80q-73-6-136-40.5T291-344l-25 24H360v80H280Zm0-80h-2l16-16q-31-15-47.5-43T230-360q0-31 16.5-59T294-464l-16-16h2q33 0 56.5 23.5T360-400q0 33-23.5 56.5T280-240Zm360 0q66 0 113-47t47-113q0-66-47-113t-113-47q-29 0-54 10t-45 28l78 78-56 56-94-94q-21 32-24.5 70t13.5 74q18 42 54 69t82 29v-80h-40v-80h80v160Zm0-120q17 0 28.5-11.5T680-400q0-17-11.5-28.5T640-440q-17 0-28.5 11.5T600-400q0 17 11.5 28.5T640-360Z"/></svg>
@@ -129,7 +129,7 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
       });
 
       // Custom Customer Home Icon (Match Flutter App Icons.home)
-      (window as any).customerIcon = new L.divIcon({
+      (window as any).customerIcon = L.divIcon({
         className: "custom-customer-marker",
         html: `<div style="background-color: white; width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
                  <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="#1A534B"><path d="M160-120v-480l320-240 320 240v480H560v-280H400v280H160Z"/></svg>
