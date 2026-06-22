@@ -117,22 +117,26 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
         shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
       });
       
-      // Custom Motor Icon
-      (window as any).motorIcon = new L.Icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
-        iconSize: [46, 46],
-        iconAnchor: [23, 23],
-        popupAnchor: [0, -20]
+      // Custom Motor Icon (Match Flutter App Icons.two_wheeler)
+      (window as any).motorIcon = new L.divIcon({
+        className: "custom-driver-marker",
+        html: `<div style="background-color: #1A534B; width: 48px; height: 48px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+                 <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="white"><path d="M280-160q-66 0-113-47T120-320q0-66 47-113t113-47q42 0 78.5 22.5T415-397l85-83-80-80 56-56 56 56 47-47-53-73 66-48 76 104q16-4 32.5-6t33.5-2q99 0 169.5 70.5T880-480q0 99-70.5 169.5T640-240q-68 0-123-38.5T436-379l-49 47q21 44 60 76t88 36v80q-73-6-136-40.5T291-344l-25 24H360v80H280Zm0-80h-2l16-16q-31-15-47.5-43T230-360q0-31 16.5-59T294-464l-16-16h2q33 0 56.5 23.5T360-400q0 33-23.5 56.5T280-240Zm360 0q66 0 113-47t47-113q0-66-47-113t-113-47q-29 0-54 10t-45 28l78 78-56 56-94-94q-21 32-24.5 70t13.5 74q18 42 54 69t82 29v-80h-40v-80h80v160Zm0-120q17 0 28.5-11.5T680-400q0-17-11.5-28.5T640-440q-17 0-28.5 11.5T600-400q0 17 11.5 28.5T640-360Z"/></svg>
+               </div>`,
+        iconSize: [48, 48],
+        iconAnchor: [24, 24],
+        popupAnchor: [0, -24]
       });
 
-      // Custom Customer Pin (red)
-      (window as any).customerIcon = new L.Icon({
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34]
+      // Custom Customer Home Icon (Match Flutter App Icons.home)
+      (window as any).customerIcon = new L.divIcon({
+        className: "custom-customer-marker",
+        html: `<div style="background-color: white; width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="#1A534B"><path d="M160-120v-480l320-240 320 240v480H560v-280H400v280H160Z"/></svg>
+               </div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+        popupAnchor: [0, -20]
       });
     });
   }, []);
@@ -140,7 +144,7 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#E5E3DF]">
       {/* Map Information Overlay */}
-      <div className="absolute top-16 left-4 right-4 z-[400] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 flex justify-between items-center">
+      <div className="absolute top-16 left-4 right-4 z-[1000] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 flex justify-between items-center">
         <div>
           <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -179,8 +183,8 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
           )}
 
           {/* Customer Marker (Tujuan) */}
-          {destLat !== 0 && (
-            <Marker position={[destLat, destLng]}>
+          {destLat !== 0 && (window as any).customerIcon && (
+            <Marker position={[destLat, destLng]} icon={(window as any).customerIcon}>
               <Popup>
                 <b>{job.customer_name} (Tujuan)</b><br/>
                 {job.address}
@@ -200,7 +204,7 @@ export default function NavigationMap({ job, onComplete }: NavigationMapProps) {
       )}
 
       {/* Action Button at the bottom */}
-      <div className="absolute bottom-8 left-4 right-4 z-[400]">
+      <div className="absolute bottom-8 left-4 right-4 z-[1000] pb-[env(safe-area-inset-bottom)]">
         <button 
           onClick={onComplete}
           className="w-full py-4 rounded-2xl bg-[#1A534B] hover:bg-[#15443D] text-white font-bold shadow-2xl shadow-[#1A534B]/40 transition-all active:scale-95 uppercase tracking-widest text-sm"

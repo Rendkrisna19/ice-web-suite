@@ -70,7 +70,7 @@ export default function NavigationPage() {
   return (
     <main className="min-h-screen bg-surface-100 flex flex-col relative">
       {/* HEADER (Floating over map) */}
-      <div className="absolute top-0 left-0 right-0 z-[500] p-4 flex items-center gap-3">
+      <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex items-center gap-3">
         <button 
           onClick={() => router.replace("/driver/job-list")}
           className="bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg text-neutral-700 active:scale-95"
