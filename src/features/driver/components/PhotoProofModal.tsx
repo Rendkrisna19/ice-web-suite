@@ -40,7 +40,7 @@ export default function PhotoProofModal({ isOpen, onClose, onSubmit }: PhotoProo
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200">
         
         <div className="p-4 border-b flex justify-between items-center">
@@ -72,7 +72,7 @@ export default function PhotoProofModal({ isOpen, onClose, onSubmit }: PhotoProo
           </div>
         </div>
 
-        <div className="p-4 bg-surface-50 border-t">
+        <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-surface-50 border-t">
           <button 
             disabled={!preview || isSubmitting}
             onClick={handleSubmit}
