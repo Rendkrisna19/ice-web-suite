@@ -62,6 +62,12 @@ export default function ActiveJobCard({ job, jobStatus, onMainAction }: ActiveJo
             <span className="font-extrabold text-[#1A534B] text-sm">
               Rp {job.total_price.toLocaleString("id-ID")}
             </span>
+            <span className={cn(
+               "block mt-1 text-[9px] uppercase font-bold py-0.5 px-1.5 rounded-sm w-fit ml-auto",
+               job.payment_method === 'online' ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"
+            )}>
+               {job.payment_method === 'online' ? (job.payment_status === 'paid' ? 'LUNAS (ONLINE)' : 'ONLINE (UNPAID)') : 'COD (TAGIH TUNAI)'}
+            </span>
           </div>
         </div>
 

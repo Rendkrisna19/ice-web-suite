@@ -58,6 +58,15 @@ export default function OrderCard({ order, variant, drivers = [], onAction }: Or
                 <div className="flex items-center gap-1 text-[10px] text-neutral-400 font-medium">
                    <Clock size={10} />
                    {new Date(order.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                   
+                   {order.payment_method && (
+                     <span className={cn(
+                       "ml-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase",
+                       order.payment_method === 'online' ? "bg-blue-100 text-blue-700 border border-blue-200" : "bg-orange-100 text-orange-700 border border-orange-200"
+                     )}>
+                       {order.payment_method}
+                     </span>
+                   )}
                 </div>
                 <div className="text-[10px] font-semibold text-neutral-700">
                     {order.items?.length || 0} Item

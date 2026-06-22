@@ -18,6 +18,8 @@ export interface DriverJob {
   items: DriverJobItem[];
   status: 'ready' | 'on_delivery' | 'delivered' | 'completed';
   note?: string; // Catatan tambahan order
+  payment_method?: 'cod' | 'online';
+  payment_status?: 'unpaid' | 'paid' | 'failed';
 }
 
 export interface DriverProfile {

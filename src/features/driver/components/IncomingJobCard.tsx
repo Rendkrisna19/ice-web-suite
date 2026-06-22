@@ -60,6 +60,9 @@ export default function IncomingJobCard({ job, onAccept, onReject }: IncomingJob
                  </div>
                  <span className="font-extrabold text-sm">{job.total_price.toLocaleString("id-ID")}</span>
                </div>
+               <span className="text-[8px] font-bold text-primary-500 uppercase">
+                 {job.payment_method === 'online' ? 'PAID (ONLINE)' : 'CASH (COD)'}
+               </span>
              </div>
           </div>
 

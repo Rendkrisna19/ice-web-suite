@@ -45,6 +45,10 @@ export interface Order {
   proof_of_delivery?: string | null; // <-- PENTING
   delivered_at?: string | null;      // <-- PENTING
   picked_up_at?: string | null;
+
+  // Payment
+  payment_method?: 'cod' | 'online';
+  payment_status?: 'unpaid' | 'paid' | 'failed';
 }
 
 export interface OrderItem {

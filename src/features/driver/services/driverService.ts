@@ -93,6 +93,8 @@ export const driverService = {
         outlet_lng: Number((order as any).outlet_longitude) || 0,
         status: order.status,
         note: order.notes || "",
+        payment_method: (order as any).payment_method || 'cod',
+        payment_status: (order as any).payment_status || 'unpaid',
         items: (order.items || []).map((item: ApiOrderItem) => ({
           menu_name: item.product_name || item.name || "Item Menu", 
           qty: item.quantity,
