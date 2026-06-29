@@ -473,28 +473,28 @@ export default function ReportBoard() {
       icon: "wallet"
     },
     {
-      label: "GROSS SALES",
+      label: "TOTAL PENJUALAN",
       value: `Rp ${data.summary.gross_sales.value.toLocaleString("id-ID")}`,
       trend: formatGrowth(data.summary.gross_sales.growth),
       isPositive: data.summary.gross_sales.growth >= 0,
       icon: "money"
     },
     {
-      label: "COGS (MODAL)",
+      label: "HPP / MODAL",
       value: `Rp ${data.summary.cogs.value.toLocaleString("id-ID")}`,
       trend: formatGrowth(data.summary.cogs.growth),
       isPositive: data.summary.cogs.growth <= 0,
       icon: "cost"
     },
     {
-      label: "GROSS PROFIT",
+      label: "LABA KOTOR",
       value: `Rp ${data.summary.gross_profit.value.toLocaleString("id-ID")}`,
       trend: formatGrowth(data.summary.gross_profit.growth),
       isPositive: data.summary.gross_profit.growth >= 0,
       icon: "profit"
     },
     {
-      label: "GROSS MARGIN",
+      label: "PERSENTASE LABA",
       value: `${Number(data.summary.gross_margin_percent.value).toFixed(2)}%`,
       trend: formatGrowth(data.summary.gross_margin_percent.growth),
       isPositive: true,
@@ -532,7 +532,7 @@ export default function ReportBoard() {
         {/* Header & Toolbar Area */}
         <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
            <div>
-             <h1 className="text-2xl font-bold text-neutral-900">Financial Reports</h1>
+             <h1 className="text-2xl font-bold text-neutral-900">Laporan Keuangan</h1>
              <p className="text-sm text-neutral-500 mt-1">Analisa pendapatan, transaksi, dan performa bisnis.</p>
            </div>
            
