@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Image as ImageIcon, MapPin, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { Outlet } from "@/types/merchant";
 import Image from "next/image";
 
@@ -20,6 +21,11 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
     const logoInputRef = useRef<HTMLInputElement>(null);
     const bannerInputRef = useRef<HTMLInputElement>(null);
 
+    // Ref & State untuk koordinat otomatis
+    const latInputRef = useRef<HTMLInputElement>(null);
+    const lngInputRef = useRef<HTMLInputElement>(null);
+    const [isGettingLocation, setIsGettingLocation] = useState(false);
+
     if (!isOpen) return null;
 
     const defaultStatus = initialData?.is_force_closed ? "maintenance" : "active";
@@ -31,6 +37,31 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
             const objectUrl = URL.createObjectURL(file);
             setPreview(objectUrl);
         }
+    };
+
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            toast.error("Browser Anda tidak mendukung fitur lokasi");
+            return;
+        }
+
+        setIsGettingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                if (latInputRef.current && lngInputRef.current) {
+                    latInputRef.current.value = position.coords.latitude.toString();
+                    lngInputRef.current.value = position.coords.longitude.toString();
+                    toast.success("Titik koordinat berhasil didapatkan!");
+                }
+                setIsGettingLocation(false);
+            },
+            (error) => {
+                console.error(error);
+                toast.error("Gagal mendapatkan lokasi. Pastikan izin lokasi (GPS) diberikan pada browser.");
+                setIsGettingLocation(false);
+            },
+            { enableHighAccuracy: true }
+        );
     };
 
     return (
@@ -166,11 +197,28 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
                                     <input type="time" name="closing_hour" defaultValue={initialData?.closing_hour} required className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" />
                                 </div>
 
+                                <div className="md:col-span-2 flex items-center justify-between border-t border-surface-100 pt-4 mt-2">
+                                    <div className="flex flex-col">
+                                        <h5 className="text-sm font-bold text-neutral-800">Koordinat Peta (GPS)</h5>
+                                        <p className="text-xs text-neutral-500">Klik tombol di samping untuk otomatis mengambil lokasi Anda saat ini.</p>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={handleGetLocation}
+                                        disabled={isGettingLocation}
+                                        className="flex items-center gap-1.5 text-xs font-bold bg-primary-50 text-primary-600 px-4 py-2 rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50"
+                                    >
+                                        {isGettingLocation ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
+                                        {isGettingLocation ? "Mencari Lokasi..." : "Gunakan Lokasi Saat Ini"}
+                                    </button>
+                                </div>
+
                                 <div>
                                     <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Latitude</label>
                                     <input 
                                         type="text" 
                                         name="latitude" 
+                                        ref={latInputRef}
                                         defaultValue={initialData?.latitude || "-6.200000"} 
                                         onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.-]/g, '')}
                                         className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" 
@@ -181,6 +229,7 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
                                     <input 
                                         type="text" 
                                         name="longitude" 
+                                        ref={lngInputRef}
                                         defaultValue={initialData?.longitude || "106.816666"} 
                                         onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.-]/g, '')}
                                         className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" 
