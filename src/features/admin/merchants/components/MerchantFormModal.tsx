@@ -269,6 +269,19 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
                             </div>
                         )}
 
+                        {/* SECTION 4: GANTI PASSWORD (Hanya tampil saat Edit) */}
+                        {isEditMode && (
+                            <div className="space-y-4 bg-orange-50 p-4 rounded-2xl border border-orange-100 mt-6">
+                                <h4 className="text-sm font-bold text-orange-800 uppercase tracking-wider border-b border-orange-200 pb-2">Ubah Password Pengelola</h4>
+                                <p className="text-xs text-orange-600 mb-2">Biarkan kosong jika Anda tidak ingin mengubah password akun pengelola.</p>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-orange-900 mb-1.5">Password Baru</label>
+                                    <input type="password" name="password" minLength={6} placeholder="Masukkan password baru (Minimal 6 karakter)" className="w-full p-2.5 bg-white border border-orange-200 rounded-xl focus:border-orange-500 outline-none text-sm" />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="pt-4 flex gap-3 sticky bottom-0 bg-white pb-2 border-t border-surface-100">
                             <button type="button" onClick={onClose} className="flex-1 py-3 text-neutral-500 font-bold hover:bg-surface-100 rounded-xl transition-colors text-sm">Batal</button>
                             <button type="submit" className="flex-1 py-3 bg-primary-500 text-white font-bold rounded-xl hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20 text-sm">Simpan Data</button>
