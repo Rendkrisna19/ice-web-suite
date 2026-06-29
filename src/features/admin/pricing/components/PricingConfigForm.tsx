@@ -88,26 +88,7 @@ export default function PricingConfigForm({
           </p>
         </div>
 
-        {/* Platform Fee */}
-        <div className="group">
-          <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 mb-3">
-            <Info size={16} className="text-purple-500" /> Platform Fee (App)
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-medium">
-              Rp
-            </span>
-            <input
-              type="number"
-              value={config.serviceFee}
-              onChange={(e) => handleChange("serviceFee", e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-surface-50 border-2 border-transparent focus:bg-white focus:border-primary-500/20 rounded-2xl text-lg font-bold text-neutral-800 outline-none transition-all"
-            />
-          </div>
-          <p className="text-xs text-neutral-400 mt-2 ml-1">
-            Biaya layanan aplikasi per transaksi.
-          </p>
-        </div>
+
 
         {/* Tax Percentage (Optional if needed) */}
         <div className="group">
