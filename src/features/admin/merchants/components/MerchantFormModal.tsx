@@ -132,12 +132,29 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
 
                                 <div>
                                     <label className="block text-xs font-semibold text-neutral-700 mb-1.5">No. Telepon</label>
-                                    <input name="phone" defaultValue={initialData?.phone} required placeholder="021-xxxxxx" className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" />
+                                    <input 
+                                        type="tel"
+                                        name="phone" 
+                                        defaultValue={initialData?.phone} 
+                                        required 
+                                        placeholder="021xxxxxxx" 
+                                        pattern="[0-9]*"
+                                        onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')}
+                                        className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" 
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Whatsapp (Format 62)</label>
-                                    <input name="whatsapp_number" defaultValue={initialData?.whatsapp_number} placeholder="628xxxxxxxx" className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" />
+                                    <input 
+                                        type="tel"
+                                        name="whatsapp_number" 
+                                        defaultValue={initialData?.whatsapp_number} 
+                                        placeholder="628xxxxxxxx" 
+                                        pattern="[0-9]*"
+                                        onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')}
+                                        className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" 
+                                    />
                                 </div>
 
                                 <div>
@@ -151,11 +168,23 @@ export default function MerchantFormModal({ isOpen, onClose, onSubmit, initialDa
 
                                 <div>
                                     <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Latitude</label>
-                                    <input type="text" name="latitude" defaultValue={initialData?.latitude || "-6.200000"} className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" />
+                                    <input 
+                                        type="text" 
+                                        name="latitude" 
+                                        defaultValue={initialData?.latitude || "-6.200000"} 
+                                        onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.-]/g, '')}
+                                        className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" 
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Longitude</label>
-                                    <input type="text" name="longitude" defaultValue={initialData?.longitude || "106.816666"} className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" />
+                                    <input 
+                                        type="text" 
+                                        name="longitude" 
+                                        defaultValue={initialData?.longitude || "106.816666"} 
+                                        onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.-]/g, '')}
+                                        className="w-full p-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:border-primary-500 outline-none text-sm" 
+                                    />
                                 </div>
 
                                 <div className="md:col-span-2">
