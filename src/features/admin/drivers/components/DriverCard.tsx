@@ -17,7 +17,16 @@ export default function DriverCard({ driver, onEdit, onDelete }: DriverCardProps
   const plateNumber = driver.plate_number || "-";
   const status = driver.status || "active"; // Default active jika backend null
   const balance = driver.wallet_balance ?? driver.balance ?? 0; // wallet_balance from backend
-  const avatar = driver.profile_image || driver.avatar || `https://ui-avatars.com/api/?name=${driver.name}&background=random`;
+  const getImageUrl = (path: string | null | undefined) => {
+    if (!path) return `https://ui-avatars.com/api/?name=${encodeURIComponent(driver.name)}&background=random`;
+    if (path.startsWith("http")) return path;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://linen-deer-529188.hostingersite.com";
+    const baseUrl = apiUrl.split("/api")[0];
+    const cleanPath = path.replace(/^\//, "");
+    return cleanPath.startsWith("storage") ? `${baseUrl}/${cleanPath}` : `${baseUrl}/storage/${cleanPath}`;
+  };
+
+  const avatar = getImageUrl(driver.profile_image || driver.avatar);
 
   return (
     <div className="bg-white rounded-3xl p-5 shadow-sm border border-surface-200 hover:shadow-md transition-all group relative flex flex-col h-full">
