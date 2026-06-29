@@ -70,7 +70,7 @@ export default function AdminHeader({ title, onRefresh }: AdminHeaderProps) {
       <div className="flex items-center gap-6">
         <div className="text-right hidden md:block">
             <p className="text-xs font-bold text-neutral-800">Super Admin</p>
-            <p className="text-[10px] text-neutral-400 uppercase tracking-wider">Headquarters</p>
+            <p className="text-[10px] text-neutral-400 uppercase tracking-wider">Owner ZAD</p>
         </div>
         
         {/* Profile & Dropdown */}
