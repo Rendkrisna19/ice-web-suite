@@ -375,33 +375,55 @@ export default function ReportBoard() {
       const { default: autoTable } = await import("jspdf-autotable");
       const doc = new jsPDF();
 
-      doc.setFontSize(14);
-      doc.text("Laporan & Analitik", 14, 16);
+      // Render Logo & Header
+      await new Promise<void>((resolve) => {
+        const img = new Image();
+        img.src = '/logo.png';
+        img.onload = () => {
+          doc.addImage(img, 'PNG', 14, 10, 22, 22);
+          resolve();
+        };
+        img.onerror = () => resolve(); // Skip logo on error
+      });
+
+      const selectedOutletName = selectedOutletId === "all"
+        ? "Semua Counter"
+        : outlets.find((o) => o.id === selectedOutletId)?.name || `Outlet #${selectedOutletId}`;
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Laporan & Analitik ZAD", 40, 16);
+      
       doc.setFontSize(10);
-      doc.text(`Periode: ${analytics.applied_filters?.start_date || dateRange.start || "-"} s/d ${analytics.applied_filters?.end_date || dateRange.end || "-"}`, 14, 23);
-      doc.text(`Outlet: ${analytics.applied_filters?.outlet_mode || (selectedOutletId === "all" ? "all_outlets" : "single_outlet")}`, 14, 29);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Periode: ${analytics.applied_filters?.start_date || dateRange.start || "-"} s/d ${analytics.applied_filters?.end_date || dateRange.end || "-"}`, 40, 23);
+      doc.text(`Counter: ${selectedOutletName}`, 40, 28);
+
+      const greenTheme = [21, 66, 60] as [number, number, number];
 
       autoTable(doc, {
-        startY: 35,
-        head: [["Metric", "Value", "Growth"]],
+        startY: 38,
+        head: [["Metrik", "Nilai", "Pertumbuhan"]],
+        headStyles: { fillColor: greenTheme },
         body: [
           ["Total Omzet Bruto", analytics.summary.revenue.value.toLocaleString("id-ID"), `${analytics.summary.revenue.growth}%`],
           ["Pendapatan Bersih (Fee)", analytics.summary.net_income.value.toLocaleString("id-ID"), `${analytics.summary.net_income.growth}%`],
-          ["Gross Sales", analytics.summary.gross_sales.value.toLocaleString("id-ID"), `${analytics.summary.gross_sales.growth}%`],
-          ["COGS", analytics.summary.cogs.value.toLocaleString("id-ID"), `${analytics.summary.cogs.growth}%`],
-          ["Gross Profit", analytics.summary.gross_profit.value.toLocaleString("id-ID"), `${analytics.summary.gross_profit.growth}%`],
-          ["Gross Margin %", `${Number(analytics.summary.gross_margin_percent.value).toFixed(2)}%`, "-"],
+          ["Total Penjualan", analytics.summary.gross_sales.value.toLocaleString("id-ID"), `${analytics.summary.gross_sales.growth}%`],
+          ["HPP / Modal", analytics.summary.cogs.value.toLocaleString("id-ID"), `${analytics.summary.cogs.growth}%`],
+          ["Laba Kotor", analytics.summary.gross_profit.value.toLocaleString("id-ID"), `${analytics.summary.gross_profit.growth}%`],
+          ["Persentase Laba", `${Number(analytics.summary.gross_margin_percent.value).toFixed(2)}%`, "-"],
           ["Total Transaksi", analytics.summary.orders.value.toLocaleString("id-ID"), `${analytics.summary.orders.growth}%`],
           ["Total Item Terjual", analytics.summary.total_items_sold.value.toLocaleString("id-ID"), "-"],
           ["Refund / Batal", analytics.summary.refund.value.toLocaleString("id-ID"), `${analytics.summary.refund.growth}%`]
         ]
       });
 
-      const previousTableY = (doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 35;
+      const previousTableY = (doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 38;
 
       autoTable(doc, {
         startY: previousTableY + 8,
-        head: [["ID", "Status", "Total", "App Fee", "Gross Sales", "COGS", "Gross Profit"]],
+        head: [["ID Order", "Status", "Total", "App Fee", "Total Penjualan", "HPP / Modal", "Laba Kotor"]],
+        headStyles: { fillColor: greenTheme },
         body: analytics.recent_orders.slice(0, 20).map((trx) => [
           trx.order_number || `#${trx.id}`,
           trx.status,
